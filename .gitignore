@@ -1,0 +1,22 @@
+# Build output
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Secrets & local config
+.env
+appsettings.Development.json
+appsettings.*.json
+!appsettings.json
+
+# Node / frontend
+node_modules/
+dist/
+
+# Misc
+*.log
+.DS_Store

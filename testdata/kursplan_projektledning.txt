@@ -1,0 +1,105 @@
+Kurs: Projektledning inom IT (PRJ23A)
+Lärare: Anna Lindqvist
+Termin: HT 2026
+Antal studenter: 30
+Poäng: 40 YH-poäng
+
+=== KURSENS SYFTE ===
+Kursen ger studenten kunskaper och färdigheter för att planera, leda och följa upp IT-projekt. Fokus ligger på agila metoder, riskhantering och kommunikation inom projektteam.
+
+=== LÄRANDERESULTAT ===
+Efter avslutad kurs ska studenten kunna:
+1. Planera och strukturera ett IT-projekt med hjälp av agila metoder (Scrum, Kanban)
+2. Identifiera och hantera risker i ett projekt
+3. Skapa och underhålla en projektplan med tidsplan, budget och resursplan
+4. Kommunicera projektets status till intressenter
+5. Använda projektledningsverktyg som Jira, Trello och MS Project
+
+=== KURSMOMENT ===
+Moment 1 – Introduktion till projektledning (vecka 1–2)
+  - Vad är ett projekt? Skillnad mot linjearbete
+  - Projektets livscykel: initiering, planering, genomförande, avslut
+  - Roller: projektledare, sponsor, intressenter, teammedlem
+
+Moment 2 – Agila metoder (vecka 3–5)
+  - Scrum: sprintar, daily standup, retrospektiv, sprint review
+  - Kanban: visualisera flöde, WIP-gränser
+  - Skillnad mellan Scrum och Kanban – när används vad?
+  - Övning: Köra en sprint i Trello
+
+Moment 3 – Projektplanering (vecka 6–8)
+  - Kravhantering och scope management
+  - Nedbrytning av arbete: WBS (Work Breakdown Structure)
+  - Tidsplanering: Gantt-schema, milstolpar
+  - Budgetplanering och resursallokering
+  - Inlämning 1: Projektplan för fiktivt IT-projekt (individuell)
+
+Moment 4 – Riskhantering (vecka 9–10)
+  - Identifiera risker: brainstorming, checklistor
+  - Riskanalys: sannolikhet × konsekvens
+  - Riskregister och åtgärdsplan
+  - Vanliga risker i IT-projekt: scope creep, resursbrist, teknisk skuld
+
+Moment 5 – Kommunikation och ledarskap (vecka 11–12)
+  - Intressentanalys och kommunikationsplan
+  - Statusrapportering: RAG-status (Röd/Gul/Grön)
+  - Konflikthantering i projektteam
+  - Mötesledning: effektiva möten, agenda, protokoll
+
+Moment 6 – Projektavslut och utvärdering (vecka 13–14)
+  - Slutrapport och erfarenhetsåterföring (lessons learned)
+  - Projektdokumentation
+  - Grupprojekt redovisning
+
+=== EXAMINATIONSFORMER ===
+Inlämning 1 – Projektplan (individuell): 30% av slutbetyg
+  Deadline: Söndag vecka 8, kl 23:59
+  Lämnas in i: Google Classroom
+
+Inlämning 2 – Riskanalys (individuell): 20% av slutbetyg
+  Deadline: Söndag vecka 10, kl 23:59
+
+Grupprojekt – Genomför ett fiktivt IT-projekt med Scrum: 50% av slutbetyg
+  Presentation: Vecka 14 under lektionstid
+  Grupper om 4–5 studenter, självvalda
+
+=== BEDÖMNINGSKRITERIER ===
+Betyg G (Godkänt):
+- Kan redogöra för grundläggande projektledningsbegrepp
+- Skapar en projektplan som innehåller syfte, mål, tidsplan och rollbeskrivningar
+- Identifierar minst 5 relevanta risker och föreslår åtgärder
+- Deltar aktivt i grupprojektet
+
+Betyg VG (Väl godkänt):
+- Analyserar och motiverar metodval (varför Scrum vs Kanban för just detta projekt)
+- Projektplanen är välstrukturerad, realistisk och innehåller budgetanalys
+- Riskanalysen prioriterar risker och kopplar åtgärder till sannolikhet och konsekvens
+- Tar ledarroll i grupprojektet och visar förmåga att hantera konflikter eller hinder
+
+=== KURSLITTERATUR ===
+- "Projektledning" av Gunnar Bergström & Lena Råberg (finns på biblioteket)
+- Scrum Guide 2020 (gratis på scrumguides.org)
+- Canvas-moduler med föreläsningsanteckningar (publiceras vecka för vecka)
+
+=== PRAKTISK INFORMATION ===
+Lektioner: Tisdagar och torsdagar kl 08:30–11:30, sal B204
+Distansalternativ: Teams-länk skickas i Slack-kanalen #prj23a innan varje lektion
+Frågor: Ställ frågor i Slack-kanalen #prj23a – Anna svarar vardagar inom 24 timmar
+Sjukfrånvaro: Meddela i Slack senast kl 08:00 på lektionsdagen
+Gruppindelning: Sker vecka 3 – Anna delar ut lista i Classroom
+
+=== VANLIGA FRÅGOR (FAQ) ===
+F: Kan jag lämna in inlämning 1 sent?
+S: Sen inlämning accepteras upp till 5 dagar efter deadline med avdrag på ett betygssteg. Kontakta Anna i förväg om du vet att du inte hinner.
+
+F: Måste jag närvara på alla lektioner?
+S: Närvaro är inte obligatorisk men starkt rekommenderad. Allt kursmaterial publiceras i Classroom. Frånvaro under gruppprojektets arbetstid kan påverka ditt betyg.
+
+F: Kan jag byta grupp?
+S: Byte av grupp är möjligt fram till vecka 4. Kontakta Anna direkt.
+
+F: Vilket verktyg ska vi använda för Gantt-schema?
+S: Valfritt – Trello, MS Project, Excel eller Google Sheets fungerar alla. Det viktiga är att innehållet är korrekt.
+
+F: Vad händer om en gruppmedlem inte bidrar?
+S: Dokumentera vad som hänt och kontakta Anna. Enskild bedömning kan göras i undantagsfall.
