@@ -1,4 +1,4 @@
-﻿namespace TeacherAid.Api.Controllers
+namespace TeacherAid.Api.Controllers
 {
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -21,7 +21,7 @@
             _http = http;
         }
 
-        // 1. Recive studen twork
+        // 1. Ta emot studentinlämning
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateSubmissionDto dto)
         {
@@ -36,26 +36,58 @@
             return Ok(new { submission.Id });
         }
 
-        // 2. Trigger n8n-workflow
+        // 2. Trigga n8n-workflow och logga körningen
         [HttpPost("{id}/process")]
         public async Task<IActionResult> Process(int id)
         {
             var submission = await _db.Submissions.FindAsync(id);
             if (submission == null) return NotFound();
 
-            var client = _http.CreateClient();
-            await client.PostAsJsonAsync("http://localhost:5678/webhook/feedback", new
+            var log = new AutomationLog
             {
-                submissionId = submission.Id,
-                studentName = submission.StudentName,
-                courseId = submission.CourseId,
-                content = submission.Content
-            });
+                SubmissionId = id,
+                Status = "pending"
+            };
+            _db.AutomationLogs.Add(log);
+            await _db.SaveChangesAsync();
 
-            return Ok("Processing started");
+            try
+            {
+                var client = _http.CreateClient();
+                var response = await client.PostAsJsonAsync("http://localhost:5678/webhook/feedback", new
+                {
+                    submissionId = submission.Id,
+                    studentName = submission.StudentName,
+                    courseId = submission.CourseId,
+                    content = submission.Content
+                });
+
+                if (response.IsSuccessStatusCode)
+                {
+                    log.Status = "success";
+                }
+                else
+                {
+                    log.Status = "failed";
+                    log.ErrorMessage = $"n8n svarade med statuskod {(int)response.StatusCode}";
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Status = "failed";
+                log.ErrorMessage = ex.Message;
+            }
+            finally
+            {
+                await _db.SaveChangesAsync();
+            }
+
+            return log.Status == "success"
+                ? Ok("Processing started")
+                : StatusCode(502, new { error = "n8n-anropet misslyckades", detail = log.ErrorMessage });
         }
 
-        // 3. Get feedbackutkast
+        // 3. Hämta feedbackutkast
         [HttpGet("{id}/feedback")]
         public async Task<IActionResult> GetFeedback(int id)
         {
@@ -65,7 +97,7 @@
             return Ok(draft);
         }
 
-        // 4. Save teachers approved feedback
+        // 4. Spara lärarens godkända feedback
         [HttpPut("{id}/feedback")]
         public async Task<IActionResult> ApproveFeedback(int id, [FromBody] ApproveFeedbackDto dto)
         {
@@ -78,6 +110,27 @@
             draft.Approved = true;
             await _db.SaveChangesAsync();
             return Ok(draft);
+        }
+
+        // 5. Hämta automationsloggar (läraren kan se historik)
+        [HttpGet("logs")]
+        public async Task<IActionResult> GetLogs()
+        {
+            var logs = await _db.AutomationLogs
+                .OrderByDescending(l => l.Timestamp)
+                .Take(100)
+                .Select(l => new
+                {
+                    l.Id,
+                    l.SubmissionId,
+                    l.Timestamp,
+                    l.Status,
+                    l.TokensUsed,
+                    l.ErrorMessage
+                })
+                .ToListAsync();
+
+            return Ok(logs);
         }
     }
 }

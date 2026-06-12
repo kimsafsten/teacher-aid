@@ -32,6 +32,7 @@ builder.Services.AddHttpClient("ollama", client =>
 {
     client.Timeout = TimeSpan.FromMinutes(5);
 });
+builder.Services.AddScoped<TeacherAid.Api.Services.ILLMService, TeacherAid.Api.Services.OllamaLLMService>();
 builder.Services.AddScoped<TeacherAid.Api.Services.RagService>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

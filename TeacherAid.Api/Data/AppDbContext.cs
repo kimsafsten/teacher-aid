@@ -12,6 +12,7 @@
         public DbSet<FeedbackDraft> FeedbackDrafts => Set<FeedbackDraft>();
         public DbSet<CourseDocument> CourseDocuments => Set<CourseDocument>();
         public DbSet<DocumentChunk> DocumentChunks => Set<DocumentChunk>();
+        public DbSet<AutomationLog> AutomationLogs => Set<AutomationLog>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -20,3 +20,4 @@ dist/
 # Misc
 *.log
 .DS_Store
+.~lock.*
