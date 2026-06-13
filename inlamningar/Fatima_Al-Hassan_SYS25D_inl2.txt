@@ -1,0 +1,100 @@
+Inlämning 2 – Teknisk rapport
+Kurs: SYS25D – Systemutveckling och testning med AI-verktyg
+Student: Fatima Al-Hassan
+Grupp: Fatima Al-Hassan, Erik Sundqvist
+Scenario: B – Lagerhantering
+Datum: 2025-12-04
+
+=== 1. INLEDNING ===
+Vi har byggt ett REST API för lagerhantering. Systemet hanterar produkter, lagerkvantiteter och en enkel varningsnotifikation när produkter understiger ett minimiantal. Vi använde GitHub Copilot primärt och kompletterade med Claude för specifika frågor om testning och säkerhet.
+
+Systemet är byggt i ASP.NET Core med SQLite som databas (enklare att sätta upp lokalt) och är deployat lokalt via docker-compose.
+
+=== 2. VAL AV AI-VERKTYG ===
+Vi valde att jämföra GitHub Copilot och Claude:
+
+GitHub Copilot:
+- Integrerat i VS Code, vi använde det redan i andra kurser
+- Gratis med GitHub Student Pack
+- Bra på autocomplete och att generera boilerplate
+- Nackdel: kontextfönstret är begränsat till aktiv fil
+
+Claude:
+- Vi använde den gratis via claude.ai
+- Bättre för längre konversationer och att diskutera arkitektur
+- Nackdel: måste kopiera och klistra kod manuellt, inte integrerat i IDE
+
+Vi valde Copilot som primärt verktyg för kod och Claude för analys och testgenerering. Det funkade bra som kombination.
+
+=== 3. IMPLEMENTATION OCH AI-ANVÄNDNING ===
+
+Endpoints:
+  GET    /api/products            – Lista produkter med filtrering på kategori
+  GET    /api/products/{id}       – Hämta produkt
+  POST   /api/products            – Skapa produkt (med minQuantity-fält)
+  PUT    /api/products/{id}       – Uppdatera produkt
+  DELETE /api/products/{id}       – Ta bort produkt
+  POST   /api/stock/add           – Öka lager
+  POST   /api/stock/remove        – Minska lager
+  GET    /api/stock/alerts        – Lista produkter under minQuantity
+
+AI-användning:
+
+PROMPT 1 – Copilot:
+Vi kommenterade vad vi ville ha och lät Copilot generera:
+"// GET endpoint that returns all products below their minimum quantity threshold"
+Copilot genererade en korrekt LINQ-query. Vi kontrollerade att den faktiskt filtrerade rätt och la till sortering på hur långt under minQuantity produkten är.
+
+PROMPT 2 – Claude:
+"I'm implementing a stock removal endpoint. What should happen if the removal would make quantity go below zero? Show me idiomatic C# for handling this."
+Claude föreslog att returnera 409 Conflict med ett detaljerat felmeddelande och visa hur man skriver en DomainException för detta. Vi implementerade detta mönster.
+
+PROMPT 3 – Copilot:
+Vi bad Copilot generera en DTO-mappning. Den genererade manuell mappning med en massa Properties. Vi bytte sedan till AutoMapper baserat på ett Claude-tips, vilket reducerade koden avsevärt.
+
+Vad vi ändrade i AI-genererad kod:
+- Copilot la till ingen validering på quantity-fältet (tillät negativa tal vid skapande). Vi la till [Range(0, int.MaxValue)].
+- Claude föreslog ett felmeddelande på engelska, vi bytte till svenska för konsekvensens skull.
+- Copilot genererade Delete som hårdradering – vi behöll det eftersom vi inte har krav på historik.
+
+=== 4. TESTNING ===
+
+Vi använde xUnit med Moq. Claude hjälpte oss strukturera testerna.
+
+Prompt till Claude:
+"Visa en bra teststruktur för en StockService med Arrange-Act-Assert. Testa RemoveStock när: 1) tillräckligt lager finns, 2) otillräckligt lager, 3) produkten inte finns."
+
+Claude genererade tydliga tester med tydlig namngivning (MethodName_WhenCondition_ThenResult). Vi använde detta mönster för alla tester.
+
+Testfall: 14 st, alla gröna.
+Kodtäckning: 76% (StockService), 58% totalt.
+
+Vi hann inte med integrationstester men det hade vi velat göra.
+
+=== 5. KODGRANSKNING ===
+
+Brist 1 – Avsaknad av paginering:
+GET /api/products returnerar alla produkter utan begränsning. I ett riktigt system med många produkter kan detta bli ett minnesproblem. Vi la till page och pageSize-parametrar som begränsar till max 100 per sida.
+
+Brist 2 – Felhantering är inkonsekvent:
+Copilot genererade felhantering på olika sätt i olika endpoints: ibland return NotFound(), ibland throw new Exception(). Vi standardiserade till att alltid använda ActionResult-returtyper och kastade domänspecifika exceptions som en global exception handler fångade.
+
+=== 6. RISKANALYS OCH ETIK ===
+
+Risk 1 – LLM02: Osäker outputhantering
+Claude genererade en gång HTML-innehåll i ett felmeddelande. Om detta renderas i en webbklient utan sanitering kan det leda till XSS. Vi validerar att alla felmeddelanden är plain text.
+Motåtgärd: Behandla all AI-output som opålitlig. Sanera output som ska visas i UI.
+
+Risk 2 – LLM06: Känslig data till extern tjänst
+Vi skickade delar av vår databas-modell till Claude. Ingen personuppgift skickades, men affärslogik kan vara känslig.
+Motåtgärd: Anonymisera och förenkla koden som skickas till externa AI-tjänster. Undvik att skicka hela filer med konfiguration.
+
+Risk 3 – Kompetenstapp
+Vi märkte att vi lärde oss less om EF Core-internals jämfört med när vi gjort liknande projekt utan AI. AI löste problemen snabbt men vi förstod inte alltid varför lösningen fungerade.
+Motåtgärd: Krav på att kunna förklara all AI-genererad kod. Vi gick tillbaka och läste EF Core-dokumentationen för de delar vi inte förstod.
+
+Etik:
+Vi diskuterade om det är "fusk" att använda AI. Vi kom fram till att det inte är det om man förstår och tar ansvar för koden — precis som att googla inte är fusk. Men att kopiera utan att förstå, och sedan påstå att man förstår, är ett etiskt problem.
+
+=== 7. SLUTSATSER ===
+Projektet fungerar och uppfyller kraven. AI sparade tid men krävde aktiv granskning. Kombinationen Copilot (inline) + Claude (analys) fungerade bra. Viktigaste lärdomen: AI-verktyg gör dig snabbare, inte smartare — du måste fortfarande förstå det du levererar.

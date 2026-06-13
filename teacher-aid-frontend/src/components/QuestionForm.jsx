@@ -4,7 +4,7 @@ import axios from 'axios'
 const API = 'http://localhost:5010/api'
 
 export default function QuestionForm() {
-  const [courseId, setCourseId] = useState('PRJ23A')
+  const [courseId, setCourseId] = useState('SYS25D')
   const [question, setQuestion] = useState('')
   const [answer, setAnswer] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -28,7 +28,7 @@ export default function QuestionForm() {
       <h2 className="text-xl font-semibold">Ställ en kursfråga</h2>
       <input
         className="w-full border rounded p-2"
-        placeholder="Kurs-ID (t.ex. PRJ23A)"
+        placeholder="Kurs-ID (t.ex. SYS25D)"
         value={courseId}
         onChange={e => setCourseId(e.target.value)}
         required

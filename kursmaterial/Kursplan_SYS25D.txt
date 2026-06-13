@@ -1,0 +1,82 @@
+KURSPLAN
+Kurs: SYS25D – Systemutveckling och testning med AI-verktyg
+Utbildning: Yrkeshögskola, IT-systemutvecklare
+Poäng: 40 YH-poäng
+Termin: HT 2025 / VT 2026
+Ansvarig lärare: Anna Lindqvist
+
+=== KURSBESKRIVNING ===
+Kursen ger studenterna praktisk kompetens att integrera AI-verktyg i ett modernt systemutvecklingsflöde. Fokus ligger på hur AI kan stödja kravanalys, kodgenerering, kodgranskning och testning — utan att ersätta det professionella omdömet. Studenterna arbetar i team och levererar ett verkligt projekt med AI-assistans.
+
+=== LÄRANDEMÅL ===
+Efter avslutad kurs ska studenten kunna:
+
+LM1. Förklara hur stora språkmodeller (LLM) fungerar och var de passar respektive inte passar i ett systemutvecklingsprojekt.
+
+LM2. Använda minst två AI-kodningsverktyg (t.ex. GitHub Copilot, Cursor, Claude Code) effektivt i ett verkligt projekt.
+
+LM3. Skriva och utvärdera AI-genererade tester (enhetstester, integrationstester) och kritiskt granska utfallet.
+
+LM4. Identifiera och hantera risker med AI-assisterad utveckling: hallucineringar, säkerhetsbrister i genererad kod, bias och GDPR-aspekter.
+
+LM5. Genomföra en strukturerad kodgranskning av AI-genererad kod och dokumentera avvikelser.
+
+LM6. Argumentera etiskt för och emot AI-användning i ett konkret projektscenario.
+
+=== KURSINNEHÅLL ===
+Modul 1 – Introduktion till AI i mjukvaruutveckling (vecka 1–2)
+  - Hur LLM:er fungerar: tokens, kontext, temperatur
+  - Översikt: GitHub Copilot, Cursor, Claude, ChatGPT i dev-flödet
+  - Promptteknik för koduppgifter
+
+Modul 2 – AI-assisterad kravanalys och design (vecka 3–4)
+  - Använda AI för att generera user stories, acceptanskriterier och sekvensdiagram
+  - Granskning och validering av AI-output
+
+Modul 3 – AI-stödd kodgenerering (vecka 5–7)
+  - Arbeta med Copilot / Cursor i ett riktigt repo
+  - Refaktorering och kodkvalitet med AI-stöd
+  - Vanliga fallgropar: säkerhetsbrister, ineffektiv kod
+
+Modul 4 – Testning med AI (vecka 8–10)
+  - Generera enhetstester med AI
+  - Mutation testing och täckningsanalys
+  - Integrations- och regressionstester i CI/CD-pipeline
+
+Modul 5 – Risker, etik och GDPR (vecka 11–12)
+  - OWASP LLM Top 10
+  - Datahantering: vad skickas till molnet?
+  - Etiska ställningstaganden och dokumentation
+
+Modul 6 – Projektarbete och presentation (vecka 13–16)
+  - Teambaserat projekt med AI-assistans
+  - Avslutande presentation och demo
+  - Individuell reflektion
+
+=== EXAMINATION ===
+Inlämning 1 – Beslutunderlag (individuell): 20 %
+  Studenten analyserar ett fiktivt företagscase och motiverar om/hur AI-verktyg bör integreras.
+
+Inlämning 2 – Teknisk rapport + implementation (grupp): 50 %
+  Teamet implementerar en feature med AI-stöd, dokumenterar processen och granskar AI-genererad kod.
+
+Inlämning 3 – Etisk reflektion (individuell): 10 %
+  Studenten reflekterar över etiska och juridiska aspekter av AI-användning i det egna projektet.
+
+Salstentamen: 20 %
+  Skriftlig tentamen täcker LM1, LM3 och LM4.
+
+Betygsskala: IG / G / VG
+
+=== KURSLITTERATUR ===
+- "The Pragmatic Programmer" – Hunt & Thomas (valda kapitel)
+- "AI-Assisted Software Development" – kurskompendium (Lindqvist, 2025)
+- OWASP LLM Top 10 (2025), tillgänglig online
+- GitHub Copilot dokumentation (officiell)
+- Utvalda akademiska artiklar (delas via lärplattform)
+
+=== DEADLINES ===
+Inlämning 1: 2025-10-17 kl 23:59
+Inlämning 2: 2025-12-05 kl 23:59
+Inlämning 3: 2026-01-16 kl 23:59
+Salstentamen: 2026-01-23

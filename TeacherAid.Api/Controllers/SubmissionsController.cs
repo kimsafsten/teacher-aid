@@ -112,7 +112,58 @@ namespace TeacherAid.Api.Controllers
             return Ok(draft);
         }
 
-        // 5. Hämta automationsloggar (läraren kan se historik)
+        // 5. Hämta alla inlämningar med feedbackstatus
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAll()
+        {
+            var submissions = await _db.Submissions
+                .OrderByDescending(s => s.SubmittedAt)
+                .Select(s => new
+                {
+                    s.Id,
+                    s.StudentName,
+                    s.CourseId,
+                    s.SourceFileName,
+                    s.SubmittedAt,
+                    Feedback = _db.FeedbackDrafts
+                        .Where(f => f.SubmissionId == s.Id)
+                        .Select(f => new
+                        {
+                            f.Approved,
+                            f.TeacherFeedback,
+                            f.TeacherGrade,
+                            f.AiFeedback,
+                            f.Summary,
+                            f.CreatedAt
+                        })
+                        .FirstOrDefault()
+                })
+                .ToListAsync();
+
+            return Ok(submissions);
+        }
+
+        // 6. Hämta inlämningar utan feedback (väntande)
+        [HttpGet("pending")]
+        public async Task<IActionResult> GetPending()
+        {
+            var pending = await _db.Submissions
+                .Where(s => !_db.FeedbackDrafts.Any(f => f.SubmissionId == s.Id))
+                .OrderByDescending(s => s.SubmittedAt)
+                .Select(s => new
+                {
+                    s.Id,
+                    s.StudentName,
+                    s.CourseId,
+                    s.SourceFileName,
+                    s.SubmittedAt
+                })
+                .ToListAsync();
+
+            return Ok(pending);
+        }
+
+        // 6. Hämta automationsloggar (läraren kan se historik)
         [HttpGet("logs")]
         public async Task<IActionResult> GetLogs()
         {

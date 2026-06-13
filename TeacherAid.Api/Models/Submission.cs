@@ -6,6 +6,7 @@
         public string StudentName { get; set; } = "";
         public string CourseId { get; set; } = "";
         public string Content { get; set; } = "";
+        public string? SourceFileName { get; set; }
         public DateTime SubmittedAt { get; set; } = DateTime.UtcNow;
         public FeedbackDraft? FeedbackDraft { get; set; }
     }

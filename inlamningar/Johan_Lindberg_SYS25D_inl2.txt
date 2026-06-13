@@ -1,0 +1,37 @@
+Inlämning 2 – Systemutveckling med AI
+Kurs: SYS25D
+Student: Johan Lindberg, grupp med Petra Holm
+Scenario: C – Uppgiftshantering
+Datum: 2025-12-05
+
+1. INLEDNING
+Vi byggt ett task-API. Projektet är i C# med .NET och en databas.
+
+2. VERKTYG
+Verktyg: ChatGPT. Vi frågade ChatGPT om hur man gör saker.
+
+Varför ChatGPT: Det är gratis och vi känner till det.
+
+3. IMPLEMENTATION
+Vi har gjort endpoints:
+- GET /tasks
+- POST /tasks
+- DELETE /tasks/{id}
+
+Vi frågade ChatGPT: "how to make a REST API in C#"
+ChatGPT visade hur man gör det och vi följde exemplet.
+
+Vår controller ser ut ungefär som exemplet fast med våra data.
+
+4. TESTNING
+Vi har inga formella enhetstester. Vi testade manuellt med Postman och det funkade. Vi vet att vi borde ha enhetstester men vi hann inte.
+
+5. KODGRANSKNING
+Vi gick igenom koden en gång. Det ser okej ut. Vi hittade inga större problem.
+
+6. RISKER
+AI kan ha fel. Man ska inte lita blint på AI.
+Data kan läcka. Man ska vara försiktig.
+
+7. SLUTSATS
+Vi lärde oss hur man bygger API med hjälp av AI. Det var bra men lite svårt.

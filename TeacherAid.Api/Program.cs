@@ -34,6 +34,8 @@ builder.Services.AddHttpClient("ollama", client =>
 });
 builder.Services.AddScoped<TeacherAid.Api.Services.ILLMService, TeacherAid.Api.Services.OllamaLLMService>();
 builder.Services.AddScoped<TeacherAid.Api.Services.RagService>();
+builder.Services.AddScoped<TeacherAid.Api.Services.DocumentExtractorService>();
+builder.Services.AddScoped<TeacherAid.Api.Services.FolderSyncService>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -55,7 +57,7 @@ app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.EnsureCreated();
+    db.Database.Migrate();
 }
 
 app.Run();

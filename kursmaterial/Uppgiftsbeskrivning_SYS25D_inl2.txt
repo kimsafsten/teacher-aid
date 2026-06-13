@@ -1,0 +1,71 @@
+UPPGIFTSBESKRIVNING – Inlämning 2
+Kurs: SYS25D – Systemutveckling och testning med AI-verktyg
+Inlämningsdatum: 2025-12-05 kl 23:59
+Gruppstorlek: 2–3 studenter
+Ansvarig lärare: Anna Lindqvist
+
+=== BAKGRUND ===
+I denna inlämning ska ni som grupp genomföra ett verkligt (men avgränsat) implementationsprojekt där AI-verktyg utgör en central del av arbetsflödet. Ni väljer själva vilket AI-verktyg ni primärt arbetar med, men ni ska kunna motivera valet.
+
+=== UPPGIFTEN ===
+Implementera en REST API-endpoint med tillhörande affärslogik, enhetstester och dokumentation.
+
+Ni väljer ett av följande scenarion (eller föreslår ett eget med lärarens godkännande):
+
+SCENARIO A – Bokningssystem
+Implementera ett enkelt API för att boka, avboka och lista tider för en fiktiv resursboknings-tjänst (t.ex. grupprum, utrustning). Hantera konflikter (dubbelbokningar).
+
+SCENARIO B – Lagerhantering
+API för att hantera produktlager: lägg till produkt, uppdatera antal, ta bort och lista produkter med filtrering. Inkludera validering och felhantering.
+
+SCENARIO C – Uppgiftshantering
+API för en enkel to-do/task-tjänst med status-hantering (pending, in_progress, done), prioritet och filtrering.
+
+=== KRAV PÅ LEVERANSEN ===
+
+1. IMPLEMENTATION
+   - Minst tre REST-endpoints (t.ex. GET, POST, PUT/DELETE)
+   - Datalagring i databas (SQLite eller PostgreSQL)
+   - Korrekt felhantering (HTTP-statuskoder, felmeddelanden)
+   - Kod i Git-repo (länk lämnas in)
+
+2. AI-DOKUMENTATION
+   - Lista vilka AI-verktyg som användes och i vilka steg
+   - Inkludera minst tre exempel på prompts ni använde och vad ni fick tillbaka
+   - Beskriv vad ni ändrade i AI-genererad kod och varför
+
+3. KODGRANSKNING
+   - Genomför en strukturerad granskning av er AI-genererade kod
+   - Identifiera minst två brister (säkerhet, prestanda, korrekthet) med förklaring
+
+4. TESTNING
+   - Enhetstester för affärslogiken (minst 10 testfall)
+   - Redovisa kodtäckning (screenshot eller rapport räcker)
+   - Beskriv hur AI-verktyget användes för att generera tester
+
+5. RISKANALYS
+   - Identifiera minst tre risker med er AI-användning
+   - Koppla till OWASP LLM Top 10 eller GDPR
+   - Beskriv konkreta motåtgärder
+
+6. RAPPORT (PDF, max 15 sidor exkl. bilagor)
+   Strukturen ska följa:
+   1. Inledning och scenariobeskrivning
+   2. Val av AI-verktyg (med motivering)
+   3. Implementation och AI-användning
+   4. Testning
+   5. Kodgranskning
+   6. Riskanalys och etik
+   7. Slutsatser och reflektion
+
+=== INLÄMNING ===
+Lämna in via lärplattformen:
+- Rapport som PDF
+- Länk till Git-repo (repo ska vara publikt eller läraren ska vara inbjuden)
+- README.md med körinstruktioner
+
+Muntlig genomgång bokas separat (ca 15 min per grupp, vecka 50).
+
+=== FRÅGOR ===
+Ställ frågor i Slack-kanalen #sys25d-inl2 eller via kursens AI-chatbot.
+Individuella frågor om betyg eller feedback: anna.lindqvist@yrkesakademin.se
