@@ -1,0 +1,85 @@
+<svg viewBox="0 0 760 500" xmlns="http://www.w3.org/2000/svg" role="img">
+  <title>Sequence Diagram – RAG Query Flow</title>
+  <desc>Student asks question → QaController → RagService → Ollama (embedding) → PostgreSQL (vector search) → Ollama (generation) → answer returned</desc>
+
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L8,3.5 z" fill="#aaa"/>
+    </marker>
+    <marker id="arr-ret" markerWidth="8" markerHeight="8" refX="7" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L8,3.5 z" fill="#666"/>
+    </marker>
+  </defs>
+
+  <rect width="760" height="500" fill="#1a1a2e" rx="12"/>
+
+  <text x="380" y="28" text-anchor="middle" font-family="system-ui,sans-serif" font-size="14" font-weight="700" fill="#fff">Sequence Diagram – RAG Query Flow (POST /api/qa/ask)</text>
+
+  <!-- Actors -->
+  <rect x="30" y="45" width="100" height="30" rx="6" fill="#333" stroke="#888" stroke-width="1.5"/>
+  <text x="80" y="65" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" font-weight="600" fill="#fff">Student</text>
+
+  <rect x="160" y="45" width="120" height="30" rx="6" fill="#1a3a6e" stroke="#4a7cf7" stroke-width="1.5"/>
+  <text x="220" y="65" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" font-weight="600" fill="#aac4ff">QaController</text>
+
+  <rect x="320" y="45" width="120" height="30" rx="6" fill="#1a3a6e" stroke="#4a7cf7" stroke-width="1.5"/>
+  <text x="380" y="65" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" font-weight="600" fill="#aac4ff">RagService</text>
+
+  <rect x="480" y="45" width="120" height="30" rx="6" fill="#2a1a4e" stroke="#9b59b6" stroke-width="1.5"/>
+  <text x="540" y="65" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" font-weight="600" fill="#d7b4f7">Ollama</text>
+
+  <rect x="635" y="45" width="110" height="30" rx="6" fill="#001a0d" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="690" y="65" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" font-weight="600" fill="#aaffcc">PostgreSQL</text>
+
+  <!-- Lifelines -->
+  <line x1="80"  y1="75" x2="80"  y2="480" stroke="#555" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="220" y1="75" x2="220" y2="480" stroke="#555" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="380" y1="75" x2="380" y2="480" stroke="#555" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="540" y1="75" x2="540" y2="480" stroke="#555" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="690" y1="75" x2="690" y2="480" stroke="#555" stroke-width="1" stroke-dasharray="4,3"/>
+
+  <line x1="82" y1="105" x2="216" y2="105" stroke="#aaa" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="148" y="98" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#fff">POST /api/qa/ask</text>
+  <text x="148" y="118" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#aaa">{ courseId, question }</text>
+
+  <line x1="222" y1="140" x2="376" y2="140" stroke="#aaa" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="299" y="133" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#fff">AskQuestion(courseId, question)</text>
+
+  <line x1="382" y1="175" x2="536" y2="175" stroke="#aaa" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="458" y="168" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#fff">GetEmbeddingAsync(question)</text>
+
+  <line x1="536" y1="200" x2="384" y2="200" stroke="#666" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-ret)"/>
+  <text x="458" y="194" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#aaa">float[] embedding</text>
+
+  <line x1="382" y1="235" x2="686" y2="235" stroke="#aaa" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="533" y="228" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#fff">L2Distance vector search (Top 3)</text>
+
+  <line x1="686" y1="260" x2="384" y2="260" stroke="#666" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-ret)"/>
+  <text x="533" y="254" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#aaa">List&lt;DocumentChunk&gt;</text>
+
+  <rect x="290" y="272" width="180" height="20" rx="4" fill="#3a2a00" stroke="#f0a500" stroke-width="1"/>
+  <text x="380" y="286" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#ffd966">if empty → return fallback string</text>
+
+  <line x1="382" y1="310" x2="536" y2="310" stroke="#aaa" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="458" y="303" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#fff">GenerateAsync(prompt + context)</text>
+
+  <line x1="536" y1="335" x2="384" y2="335" stroke="#666" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-ret)"/>
+  <text x="458" y="329" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#aaa">string answer</text>
+
+  <line x1="378" y1="370" x2="224" y2="370" stroke="#666" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-ret)"/>
+  <text x="299" y="364" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#aaa">return answer</text>
+
+  <line x1="218" y1="405" x2="84" y2="405" stroke="#666" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-ret)"/>
+  <text x="148" y="398" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#aaa">200 OK &#123; answer &#125;</text>
+
+  <text x="12" y="109" font-family="system-ui,sans-serif" font-size="9" fill="#666">1</text>
+  <text x="12" y="144" font-family="system-ui,sans-serif" font-size="9" fill="#666">2</text>
+  <text x="12" y="179" font-family="system-ui,sans-serif" font-size="9" fill="#666">3</text>
+  <text x="12" y="204" font-family="system-ui,sans-serif" font-size="9" fill="#666">4</text>
+  <text x="12" y="239" font-family="system-ui,sans-serif" font-size="9" fill="#666">5</text>
+  <text x="12" y="264" font-family="system-ui,sans-serif" font-size="9" fill="#666">6</text>
+  <text x="12" y="314" font-family="system-ui,sans-serif" font-size="9" fill="#666">7</text>
+  <text x="12" y="339" font-family="system-ui,sans-serif" font-size="9" fill="#666">8</text>
+  <text x="12" y="374" font-family="system-ui,sans-serif" font-size="9" fill="#666">9</text>
+  <text x="12" y="409" font-family="system-ui,sans-serif" font-size="9" fill="#666">10</text>
+</svg>
