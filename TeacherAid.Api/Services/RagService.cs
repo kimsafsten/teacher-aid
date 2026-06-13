@@ -40,13 +40,14 @@ public class RagService
         return chunks;
     }
 
-    public async Task IndexDocument(string courseId, string fileName, string content)
+    public async Task IndexDocument(string courseId, string fileName, string content, string? sourceFileName = null)
     {
         var doc = new CourseDocument
         {
             CourseId = courseId,
             FileName = fileName,
-            Content = content
+            Content = content,
+            SourceFileName = sourceFileName
         };
         _db.CourseDocuments.Add(doc);
         await _db.SaveChangesAsync();

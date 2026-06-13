@@ -24,6 +24,35 @@ namespace TeacherAid.Api.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "vector");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("TeacherAid.Api.Models.AutomationLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("SubmissionId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("TokensUsed")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AutomationLogs");
+                });
+
             modelBuilder.Entity("TeacherAid.Api.Models.CourseDocument", b =>
                 {
                     b.Property<int>("Id")
@@ -42,6 +71,9 @@ namespace TeacherAid.Api.Migrations
 
                     b.Property<string>("FileName")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("SourceFileName")
                         .HasColumnType("text");
 
                     b.Property<DateTime>("UploadedAt")
@@ -138,6 +170,9 @@ namespace TeacherAid.Api.Migrations
 
                     b.Property<string>("CourseId")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("SourceFileName")
                         .HasColumnType("text");
 
                     b.Property<string>("StudentName")

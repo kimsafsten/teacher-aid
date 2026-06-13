@@ -1,0 +1,45 @@
+Inlämning 2
+Kurs SYS25D
+Student: Viktor Andersson
+Grupp: Viktor Andersson, Maja Ek
+Scenario: A (Bokningssystem)
+
+1. Inledning
+Vi byggde ett boknings-API. Vi använde Copilot mest.
+
+2. Verktyg
+Vi använde GitHub Copilot. Det var smidigt och sparade tid. Vi testade också ChatGPT men föredrog Copilot eftersom det är direkt i editorn.
+
+3. Implementation
+Vi har tre endpoints:
+- POST /bookings – skapa bokning
+- GET /bookings – lista bokningar
+- DELETE /bookings/{id} – avboka
+
+Vi använde Copilot för att generera controller-koden. Det fungerade bra.
+
+Exempel på prompt:
+"create a booking controller in C#"
+Copilot genererade en controller med CRUD-metoder.
+
+Vi ändrade lite i koden för att det skulle passa vårt projekt bättre.
+
+4. Testning
+Vi har enhetstester. Totalt 6 stycken. De testar att man kan skapa en bokning och ta bort den.
+
+Vi använde AI för att generera testerna, vi frågade Copilot om hjälp.
+
+Kodtäckning: ca 60%.
+
+5. Kodgranskning
+Vi tittade igenom koden. AI-koden var ganska bra men vi hittade att den inte kontrollerade om en tid redan var bokad. Det fixade vi.
+
+6. Risker
+Risk 1: AI kan generera felaktig kod.
+Motåtgärd: granska koden.
+
+Risk 2: Data kan läcka om man skickar känslig info till AI.
+Motåtgärd: skicka inte lösenord till AI.
+
+7. Slutsats
+Det gick bra. AI hjälpte oss spara tid. Vi lärde oss att man måste granska AI-koden noga.

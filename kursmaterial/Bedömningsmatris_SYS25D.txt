@@ -1,0 +1,78 @@
+BEDÖMNINGSMATRIS – Inlämning 2: Teknisk rapport och implementation
+Kurs: SYS25D – Systemutveckling och testning med AI-verktyg
+Ansvarig: Anna Lindqvist
+
+Betygsskala: IG (Icke godkänt) / G (Godkänt) / VG (Väl godkänt)
+Maxpoäng: 100p  |  G: 60p  |  VG: 80p
+
+============================================================
+KRITERIUM 1 – Val och motivering av AI-verktyg (max 20p)
+============================================================
+
+IG (0–11p):
+  Inget tydligt motiverat val av AI-verktyg. Studenten har valt ett verktyg utan att koppla det till projektets behov. Ingen jämförelse görs.
+
+G (12–16p):
+  Studenten motiverar val av minst ett AI-verktyg utifrån projektets kontext. Motivering är logisk men ytlig. Alternativa verktyg nämns men jämförs inte djupgående.
+
+VG (17–20p):
+  Studenten gör en strukturerad jämförelse av minst två AI-verktyg (t.ex. Copilot vs. Cursor) utifrån konkreta kriterier: pris, integrationer, kvalitet, datasekretess. Valet motiveras med hänvisning till projektspecifika behov och team-kompetens.
+
+============================================================
+KRITERIUM 2 – Implementationskvalitet och AI-användning (max 30p)
+============================================================
+
+IG (0–17p):
+  Koden fungerar inte eller är kopierad utan förståelse. AI-användning är odokumenterad eller felaktig. Kodgranskning saknas.
+
+G (18–24p):
+  Funktionaliteten uppfyller de grundläggande kraven. AI-verktyg har använts och dokumenterats (vilka prompts, vad genererades). En enkel kodgranskning har genomförts.
+
+VG (25–30p):
+  Implementationen är välstrukturerad och testbar. AI-genererad kod är tydligt markerad och kommenterad. Studenten visar kritisk granskning: identifierar minst två brister i AI-output (säkerhet, prestanda eller korrekthet) och åtgärdar dem med dokumentation.
+
+============================================================
+KRITERIUM 3 – Testning (max 20p)
+============================================================
+
+IG (0–11p):
+  Inga tester, eller tester som inte körs eller inte testar rätt sak.
+
+G (12–16p):
+  Enhetstester täcker de viktigaste funktionerna. Testerna är AI-assisterade och studenten beskriver hur de genererades. Täckningsgrad rapporteras.
+
+VG (17–20p):
+  Minst 80% kodtäckning på implementerad feature. Studenten har använt mutation testing eller likvärdig teknik för att bedöma testkvaliteten. Integrationstest finns. AI-genererade tester granskas och felaktiga tas bort med motivering.
+
+============================================================
+KRITERIUM 4 – Risker och etik (max 20p)
+============================================================
+
+IG (0–11p):
+  Inga risker identifierade, eller en rent generisk lista utan koppling till projektet.
+
+G (12–16p):
+  Studenten identifierar minst tre relevanta risker (t.ex. OWASP LLM01 – prompt injection, LLM06 – sensitive info) och kopplar dem till sitt projekt. Enkla motåtgärder föreslås.
+
+VG (17–20p):
+  Riskanalysen är strukturerad (t.ex. som risklista med sannolikhet × konsekvens). Minst en risk är konkret demonstrerad med ett kodexempel. GDPR-aspekter hanteras. Studenten reflekterar etiskt kring sin AI-användning.
+
+============================================================
+KRITERIUM 5 – Rapport och kommunikation (max 10p)
+============================================================
+
+IG (0–5p):
+  Rapporten saknar struktur, har allvarliga språkliga brister eller redovisar inte processen.
+
+G (6–8p):
+  Rapporten är välstrukturerad och läsbar. Process och beslut är dokumenterade. Figurer och kodexempel används adekvat.
+
+VG (9–10p):
+  Rapporten håller professionell standard. Läsaren kan reproducera arbetet utifrån dokumentationen. Reflektion och slutsatser är genomtänkta och nyanserade.
+
+============================================================
+VIKTIGT FÖR BEDÖMNING
+============================================================
+- Plagiering eller odeklarerad AI-generering av rapport-text leder till IG.
+- AI-genererad kod som studenten inte kan förklara muntligt räknas som ej godkänd.
+- Alla gruppmedlemmar ska kunna redogöra för hela inlämningen vid genomgång.

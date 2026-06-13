@@ -1,0 +1,137 @@
+Inlämning 2 – Teknisk rapport med VG-ambition
+Kurs: SYS25D – Systemutveckling och testning med AI-verktyg
+Student: Sara Nilsson (individuell inlämning, godkänt av Anna L.)
+Scenario: B – Lagerhantering
+Datum: 2025-12-03
+
+=== 1. INLEDNING OCH SCENARIOBESKRIVNING ===
+Jag valde att genomföra inlämningen individuellt (godkänt undantag). Projektet är ett lagerhanteringssystem byggt i ASP.NET Core 8 med PostgreSQL. Jag använde Cursor som primärt AI-verktyg och Claude Sonnet som komplement för arkitekturdiskussion och riskanalys.
+
+Systemet stödjer:
+- Produkthantering (CRUD)
+- Lageroperationer (inleverans, utleverans)
+- Rapportering (produkter under minimilager)
+- Fulltext-sökning på produktnamn och kategori
+
+=== 2. VAL AV AI-VERKTYG ===
+
+Jämförelseanalys:
+
+| Kriterium         | Cursor              | Copilot             | Claude (chat)         |
+|-------------------|---------------------|---------------------|-----------------------|
+| Kontextfönster    | Hel kodbas          | Aktiv fil + kontext | Upp till 200k tokens  |
+| Pris              | 20 USD/mån          | Gratis (Education)  | Gratis (begränsat)    |
+| IDE-integration   | Inbyggt i Cursor    | VS Code plugin      | Webbläsare / API      |
+| Datasekretess     | Kan välja privacy   | GitHub policy       | Anthropic policy      |
+| Bäst för          | Arkitektur + refakt | Inline completion   | Analys + förklaring   |
+
+Jag valde Cursor som primär verktyg eftersom jag arbetar med hela kodbasen och behövde ett verktyg som förstår sammanhang över filer. Claude använde jag för att diskutera designbeslut och generera riskanalys, eftersom dess svar är mer resonerande och analytiska.
+
+Datasekretesspolicyn för Cursor är att kod skickas för inference men inte används för träning om man väljer "Privacy Mode". Jag aktiverade detta.
+
+=== 3. IMPLEMENTATION OCH AI-ANVÄNDNING ===
+
+Arkitektur: Repository pattern med interface, service-lager, controller. Dependency injection via .NET:s inbyggda container.
+
+Endpoints (10 st):
+  GET    /api/products            – Lista med filtrering (kategori, sökning, pris)
+  GET    /api/products/{id}       – Detaljer
+  GET    /api/products/low-stock  – Produkter under minimilager
+  POST   /api/products            – Skapa produkt
+  PUT    /api/products/{id}       – Uppdatera
+  DELETE /api/products/{id}       – Ta bort (soft delete)
+  POST   /api/inventory/receive   – Inleverans (öka antal)
+  POST   /api/inventory/dispatch  – Utleverans (minska antal, kontrollera tillgänglighet)
+  GET    /api/inventory/{id}/log  – Transaktionshistorik
+  GET    /api/reports/summary     – Samlad lagerrapport
+
+AI-dokumentation (urval):
+
+PROMPT 1 – Cursor, arkitekturdesign:
+Jag öppnade hela projektet i Cursor och frågade:
+"I'm building an inventory API. I want to use repository pattern with interfaces. Show me the folder structure, interface definitions and DI registration for a Product and Inventory domain."
+Cursor genererade en komplett mappstruktur och interface-definitioner. Jag behöll strukturen men bytte namn på IInventoryRepository till IStockRepository för tydlighetens skull och la till en separat ITransactionLogger-interface som Cursor inte föreslagit.
+
+PROMPT 2 – Claude, edge case-analys:
+"Om en utleverans gör att lagersaldot går negativt, hur bör ett API svara? Diskutera HTTP-statuskoder, optimistic vs pessimistic locking och transaktionshantering."
+Claude gav en grundlig analys av 409 Conflict vs 422 Unprocessable Entity och förklarade varför optimistic locking med ETag passar bättre än pessimistic locking för detta scenario. Jag implementerade 409 med ett tydligt felmeddelande och la till en concurrency-kontroll.
+
+PROMPT 3 – Cursor, soft delete:
+Cursor föreslog hårdradering (DELETE FROM). Jag bad den ändra till soft delete:
+"Change the delete implementation to use soft delete: add an IsDeleted bool field and filter it out in all queries."
+Cursor uppdaterade modellen, migrationen och alla queries konsekvent. Jag kontrollerade att filtret faktiskt appliceras i alla queries genom att söka i kodbasen – ett query saknade filtret, vilket jag åtgärdade manuellt.
+
+=== 4. TESTNING ===
+
+Testramverk: xUnit, Moq, Testcontainers (PostgreSQL i Docker för integrationstester)
+
+Enhetstester: 18 st
+Integrationstester: 6 st (mot riktig databas i Testcontainers)
+Totalt: 24 testfall, alla gröna
+
+Kodtäckning: 91% (StockService), 88% (ProductService), 63% (controllers – undantagen är felvägar)
+
+Mutation testing:
+Jag körde Stryker.NET mot StockService. Av 14 mutanter överlevde 2:
+- En mutation i gränskontrollen (>= vs >) för minimilager: täckt av test men testen var inte strikt nog. Fixat.
+- En mutation i transaktionsloggning: loggning testas inte fullt ut. Accepterat som known gap.
+
+AI-testgenerering:
+Cursor genererade 12 av 18 enhetstestfall. Jag hittade 3 problem:
+1. Två tester använde samma testdata utan variation (trivial dubblering).
+2. Ett test av dispatch-funktionen kontrollerade inte att lagret faktiskt minskade – testet var ett "smoke test" utan assertion på state.
+3. Felaktigt mockat beteende: Cursor mockade en exception i fel metod, testet testade alltså ingenting meningsfullt.
+
+Alla tre åtgärdades och dokumenterades.
+
+=== 5. KODGRANSKNING ===
+
+Brist 1 – Mass assignment-sårbarhet:
+Cursor genererade en PUT-endpoint som tog emot hela Product-objektet från klienten:
+  [HttpPut("{id}")]
+  public async Task<IActionResult> Update(int id, [FromBody] Product product)
+Detta tillåter klienten att skicka in vilket fält som helst, inklusive CreatedAt och IsDeleted. Jag bytte till en DTO (UpdateProductDto) med enbart redigerbara fält.
+
+Brist 2 – N+1-problem i lagerrapport:
+AI genererade rapporten med en loop som hämtade transaktioner per produkt:
+  foreach (var product in products)
+  {
+      var txCount = await _repo.GetTransactionCount(product.Id); // DB-anrop i loop!
+  }
+För 1000 produkter innebär detta 1001 databasanrop. Jag bytte till en JOIN-query och verifierade med EF Core-loggning att det blev ett enda anrop.
+
+Brist 3 – Avsaknad av rate limiting:
+Sökmotorn (fulltext) kan triggas hur ofta som helst utan begränsning. Potentiell denial-of-service. Jag la till ASP.NET Core rate limiting middleware (5 req/sekund per IP) och dokumenterade detta.
+
+=== 6. RISKANALYS OCH ETIK ===
+
+Strukturerad riskanalys (Sannolikhet 1–5, Konsekvens 1–5, Risk = S×K):
+
+| Risk                          | OWASP/lag    | S | K | Risk | Motåtgärd                              |
+|-------------------------------|--------------|---|---|------|----------------------------------------|
+| AI genererar SQL-injektion    | LLM02, A03   | 3 | 5 | 15   | ORM (EF Core), aldrig raw SQL          |
+| Kodläcka via Cursor-API       | LLM06, GDPR  | 2 | 4 | 8    | Privacy Mode aktiverat                 |
+| Hallucination i affärslogik   | LLM01        | 3 | 4 | 12   | Manuell granskning + mutation testing  |
+| N+1-prestanda i produktion    | -            | 4 | 3 | 12   | JOIN-queries, EF Core-loggning         |
+| Mass assignment (ovan)        | A08          | 2 | 4 | 8    | DTO-mönster                            |
+
+Konkret demonstration – hallucination:
+Cursor föreslog följande validering för minimilager:
+  if (product.MinStock < 0) throw new ArgumentException("Min stock must be positive");
+Felet: 0 är ett giltigt värde (inga minimilager) men koden kastar exception för 0. Testet fångade inte detta (> vs >=). Mutation testing hittade det. Åtgärdat till: if (product.MinStock < 0).
+
+GDPR:
+Systemet hanterar inga personuppgifter i normalflödet. Men transaktionsloggen kan kopplas till anställda (vem utförde utleveransen). Jag la till ett fält för operator-ID och dokumenterade att detta bör pseudonymiseras vid export.
+
+Etisk reflektion:
+Cursor är kraftfullt men skapar ett beroende som kan vara problematiskt. Jag märkte att jag ibland accepterade AI-förslag utan att tänka igenom dem — det kräver disciplin att bryta det mönstret. Jag tror att AI-verktyg bör betraktas som en skicklig praktikant: kompetent men inte ansvarig.
+
+=== 7. SLUTSATSER OCH REFLEKTION ===
+Projektet levererar alla krav och överträffar på teststäckning och riskanalys. De viktigaste insikterna:
+
+1. Cursor är exceptionellt bra på konsekvent refaktorering över hela kodbasen — det tog 10 sekunder att lägga till soft delete i 6 filer.
+2. AI hittar inte sina egna logikfel — mutation testing är ett effektivt komplement.
+3. Datasekretess måste beslutas aktivt, inte antas.
+4. AI i produktion kräver samma QA som mänsklig kod — ingen nåd för "AI-genererat" som ursäkt.
+
+Repo: https://github.com/sara-nilsson-dev/sys25d-inventory (publikt)

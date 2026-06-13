@@ -6,6 +6,7 @@ namespace TeacherAid.Api.Models
         public string CourseId { get; set; } = "";
         public string FileName { get; set; } = "";
         public string Content { get; set; } = "";
+        public string? SourceFileName { get; set; }
         public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
         public List<DocumentChunk> Chunks { get; set; } = new();
     }

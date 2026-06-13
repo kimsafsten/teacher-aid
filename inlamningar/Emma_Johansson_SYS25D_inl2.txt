@@ -1,0 +1,88 @@
+Inlämning 2 – Teknisk rapport
+Kurs: SYS25D – Systemutveckling och testning med AI-verktyg
+Student: Emma Johansson
+Grupp: Emma Johansson, Lucas Bergström
+Scenario: C – Uppgiftshantering
+Datum: 2025-12-04
+
+=== 1. INLEDNING ===
+Vi valde Scenario C och byggde ett REST API för uppgiftshantering med tre statuslägen: pending, in_progress och done. Projektet är skrivet i ASP.NET Core med PostgreSQL som databas. Vi använde GitHub Copilot och Claude som AI-verktyg genom hela projektet.
+
+=== 2. VAL AV AI-VERKTYG ===
+Vi jämförde GitHub Copilot och Cursor inför projektet.
+
+Copilot integreras direkt i Visual Studio / VS Code och har bred support. Priset är 10 USD/månad för studenter (gratis med GitHub Education). Datasekretess: kod skickas till Microsofts servrar men sparas inte för träning om man väljer rätt inställning.
+
+Cursor är en fork av VS Code med djupare AI-integration. Det erbjuder bättre kontexthantering över hela kodbasen (kan se fler filer samtidigt). Pris: 20 USD/månad. Cursor har dock sämre enterprise-datasekretessgarantier och vi var osäkra på vad som skickas.
+
+Vi valde Copilot eftersom vi redan har GitHub Education-licens, vi kände till verktyget sedan tidigare, och vi var säkrare på datasekretesspolicyn. Vi kompletterade med Claude (claude.ai) för att generera testfall och för att diskutera arkitekturbeslut.
+
+=== 3. IMPLEMENTATION OCH AI-ANVÄNDNING ===
+
+Implementerade endpoints:
+  GET  /api/tasks          – Lista alla uppgifter (med filter på status och prioritet)
+  GET  /api/tasks/{id}     – Hämta enskild uppgift
+  POST /api/tasks          – Skapa ny uppgift
+  PUT  /api/tasks/{id}     – Uppdatera status/prioritet
+  DELETE /api/tasks/{id}   – Ta bort uppgift
+
+AI-dokumentation:
+
+PROMPT 1 (Copilot, inline):
+Vi började skriva modellklassen och bad Copilot komplettera:
+"// Task model with Id, Title, Description, Status (enum), Priority (int 1-5), CreatedAt"
+Copilot genererade hela klassen korrekt, inklusive en Status-enum med rätt värden.
+Vi ändrade: lade till [Required]-annotation på Title och begränsade Priority till 1–5 med ett attribut, vilket Copilot missat.
+
+PROMPT 2 (Claude, chat):
+"Jag bygger ett ASP.NET Core API för uppgiftshantering. Jag vill ha en endpoint som listar uppgifter och stödjer filtrering på status och prioritet. Visa hur controllern och repository-lagret ska se ut med dependency injection."
+Claude genererade ett komplett exempel med interface, konkret klass och controller. Vi använde strukturen men anpassade namnen och lade till pagination som Claude inte inkluderade.
+
+PROMPT 3 (Copilot, inline):
+Vi bad Copilot generera valideringslogik för statusövergångar (man ska inte kunna gå från done till pending).
+Copilot skapade en metod men tillät övergången done → in_progress, vilket vi inte ville ha. Vi la till explicit kontroll för detta och testade med enhetstester.
+
+=== 4. TESTNING ===
+
+Vi använde xUnit och Moq. AI genererade ett grundskelet av testfil, vi fyllde sedan på.
+
+Prompt till Claude:
+"Generera xUnit-tester för en TaskService med metoderna CreateTask, UpdateStatus och DeleteTask. Mocka ett ITaskRepository. Testa happy path och felfall."
+
+Claude genererade 8 testfall. Vi identifierade att 2 av dem testade samma sak (create med tomma fält), och tog bort dubbletten. Vi la till 4 egna tester för statusövergångslogiken.
+
+Totalt: 12 testfall, alla gröna.
+Kodtäckning (dotnet-coverage): 84% på TaskService, 71% totalt.
+
+=== 5. KODGRANSKNING ===
+
+Brist 1 – Saknad auktorisering:
+Copilot genererade endpoints utan [Authorize]-attribut. I ett produktionssystem innebär detta att vem som helst kan radera uppgifter. Vi la till [Authorize] på DELETE och PUT.
+
+Brist 2 – SQL-injektion i raw query:
+Claude genererade ett exempel med String.Format för att bygga en sökfråga:
+  var sql = String.Format("SELECT * FROM Tasks WHERE Title LIKE '%{0}%'", searchTerm);
+Detta är en klassisk SQL-injektionssårbarhet. Vi ersatte det med ett parametriserat EF Core Where-uttryck och dokumenterade fyndet.
+
+=== 6. RISKANALYS OCH ETIK ===
+
+Risk 1 – LLM01: Prompt Injection
+Om slutanvändare kan påverka vad som skickas till AI-tjänsten (t.ex. via fritext-fält) kan skadliga prompts injiceras. I vårt projekt skickas inget användar-input till AI, men om vi utökar systemet med en AI-chatbot måste input saneras.
+Motåtgärd: Separera systemprompt från användarinput. Validera och sanera all input.
+
+Risk 2 – LLM06: Känslig informationsröjning
+Under utvecklingen skickade vi kodsnuttar till Claude via webbläsaren. Vi undvek att skicka riktig produktionskod eller lösenord. Men det sker ändå en dataöverföring till en extern tjänst.
+Motåtgärd: Använd Copilot med enterprise-inställning som blockerar kodöverföring. Granska vilken data som skickas.
+
+Risk 3 – Hallucineringar i testfall
+AI genererade testfall som såg korrekta ut men testade fel sak (se testexempel ovan med dubbletter). En ovan student kanske inte märker detta.
+Motåtgärd: Alltid granska AI-genererade tester noggrant. Kör mutation testing för att se om testerna faktiskt hittar buggar.
+
+Etisk reflektion:
+Vi upplevde att AI sparar tid framförallt i boilerplate-kod. Men det kräver att man förstår vad man får — annars kopierar man säkerhetsbrister rakt in i produktion. Vi tror att AI-verktyg höjer golvet (nybörjare gör snabbare framsteg) men kan sänka taket (man slutar tänka djupt).
+
+=== 7. SLUTSATSER ===
+Projektet fungerar som avsett. AI-verktyg sparade uppskattningsvis 30–40% av kodskrivningstiden men krävde aktiv granskning. De viktigaste lärdomarna:
+- AI är bra på struktur och boilerplate, sämre på domänspecifik logik
+- Säkerhetsgranskningar kan inte delegeras till AI
+- Testgenerering fungerar bra men kräver manuell komplettering
