@@ -121,3 +121,19 @@ Workflowen tar emot studentdata via webhook, anropar Ollama för feedbackgenerer
 | PostgreSQL + pgvector | 5434 | Databas |
 | n8n | 5678 | Automationsplattform |
 | Ollama | 11434 | Lokal LLM-runtime |
+
+---
+
+## Kända begränsningar
+
+- **Chunking delar inte på meningar** — `ChunkText` splittar enbart på radbrytningar. En lång mening som inte innehåller `\n` hamnar i ett enda chunk som kan överskrida maxstorleken på 500 tecken.
+- **Endast tre chunks används per fråga** — RAG-sökningen hämtar alltid exakt tre närmaste chunks oavsett relevans. Vid glest indexerat material kan svaren bli missvisande.
+- **Embeddings cachas inte** — varje fråga och varje chunk vid indexering genererar ett nytt embedding-anrop till Ollama. Vid stora dokumentvolymer blir detta en flaskhals.
+- **Hårdkodad användare** — autentiseringen är avsedd för en enskild lärare (Anna Lindqvist). Stöd för flera användare eller roller saknas.
+- **Ingen felhantering för Ollama-timeout** — om Ollama är under uppstart eller överbelastad kastar API:et ett ohanterat undantag utan meningsfull felrespons till klienten.
+- **Feedback visas inte på inlämningen** — AI-genererat feedbackutkast dyker inte upp direkt under inlämningen i gränssnittet. Läraren måste manuellt kopiera över feedbacken.
+- **Kursmaterial kan inte redigeras i gränssnittet** — det finns inget sätt att uppdatera eller ta bort uppladdade kursdokument via frontend.
+- **Feedback kan inte redigeras direkt på sidan** — läraren kan inte justera AI-feedbacken inline utan måste hantera det utanför systemet.
+- **Genererat kursmaterial kan inte exporteras** — när AI genererat kursmaterial finns inget sätt att spara det direkt som ett dokument. Läraren måste manuellt kopiera innehållet till en extern dokumenthanterare.
+- **En kurs stöds (by design)** — systemet är i nuvarande version avsiktligt begränsat till en enda kurs. Elever kan inte välja kurs eller ställa frågor om annat kursmaterial.
+- **Elever loggar inte in (by design)** — elever ställer anonyma frågor utan autentisering, eftersom funktionen är begränsad till generella kursfrågor. Allt som kräver inloggning är förbehållet läraren.
