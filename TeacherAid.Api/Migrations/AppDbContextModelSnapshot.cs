@@ -125,10 +125,6 @@ namespace TeacherAid.Api.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("AiGrade")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<bool>("Approved")
                         .HasColumnType("boolean");
 
