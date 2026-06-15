@@ -6,6 +6,7 @@ public class OllamaLLMService : ILLMService
 {
     private readonly IHttpClientFactory _http;
     private const string OllamaUrl = "http://localhost:11434";
+    private const int MaxResponseLength = 8000;
 
     public OllamaLLMService(IHttpClientFactory http)
     {
@@ -42,7 +43,27 @@ public class OllamaLLMService : ILLMService
 
         var json = await response.Content.ReadAsStringAsync();
         var doc = JsonDocument.Parse(json);
-        return doc.RootElement.GetProperty("response").GetString()
-               ?? "Inget svar genererades.";
+        var raw = doc.RootElement.GetProperty("response").GetString()
+                  ?? "No response generated.";
+
+        return Sanitize(raw);
+    }
+
+    // Sanitize AI output before returning it to callers.
+    // Prevents control characters and null bytes from crashing downstream
+    // consumers (JSON parsers, PostgreSQL) and caps response length.
+    private static string Sanitize(string text)
+    {
+        // Remove control characters except newline and tab
+        text = new string(text.Where(c => c >= 32 || c == '\n' || c == '\t').ToArray());
+
+        // Remove null bytes — PostgreSQL throws on \0 in text columns
+        text = text.Replace("\0", string.Empty);
+
+        // Cap length to prevent runaway responses from filling the database or hanging the UI
+        if (text.Length > MaxResponseLength)
+            text = text[..MaxResponseLength] + "\n\n[Response truncated]";
+
+        return text.Trim();
     }
 }
