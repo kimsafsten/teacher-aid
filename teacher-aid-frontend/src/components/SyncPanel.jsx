@@ -84,7 +84,7 @@ export default function SyncPanel() {
     setReviewingId(s.id)
     setEditState({
       feedback: s.feedback?.teacherFeedback ?? s.feedback?.aiFeedback ?? '',
-      grade: s.feedback?.teacherGrade ?? s.feedback?.aiGrade ?? 'G'
+      grade: s.feedback?.teacherGrade ?? ''
     })
   }
 
@@ -245,7 +245,7 @@ export default function SyncPanel() {
                 </div>
                 <div className="flex items-center gap-2 ml-4">
                   <span className="bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded font-medium">
-                    {s.feedback.teacherGrade ?? s.feedback.aiGrade}
+                    {s.feedback.teacherGrade}
                   </span>
                   <span className="text-gray-400 text-xs">{expandedId === s.id ? '▲' : '▼'}</span>
                 </div>
