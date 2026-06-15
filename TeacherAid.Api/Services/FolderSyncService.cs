@@ -52,8 +52,8 @@ public class FolderSyncService
             try
             {
                 var text = _extractor.ExtractText(file);
-                // Parsa kurs-ID ur filnamnet om möjligt (andra segmentet: Kursnamn_KursID.pdf)
-                var courseId = ParseCourseIdFromFileName(fileName) ?? "okänd";
+                // Parse course ID from the file name (second segment: DocumentName_CourseId.pdf)
+                var courseId = SubmissionFileNameParser.ParseCourseId(fileName) ?? "okänd";
                 await _rag.IndexDocument(courseId, fileName, text, fileName);
                 result.Processed.Add(fileName);
             }
@@ -94,10 +94,10 @@ public class FolderSyncService
             try
             {
                 var text = _extractor.ExtractText(file);
-                var (studentName, courseId) = ParseSubmissionFileName(fileName);
+                var (studentName, courseId) = SubmissionFileNameParser.Parse(fileName);
 
-                // Pseudonymisera: ersätt studentens namn i texten
-                var anonymizedText = PseudonymizeText(text, studentName);
+                // Replace student name occurrences in the submission text
+                var anonymizedText = TextPseudonymizer.Pseudonymize(text, studentName);
 
                 _db.Submissions.Add(new Submission
                 {
@@ -121,51 +121,10 @@ public class FolderSyncService
         return result;
     }
 
-    // Förnamn_Efternamn_KursID_valfritt.pdf → ("Förnamn Efternamn", "KursID")
-    private static (string studentName, string courseId) ParseSubmissionFileName(string fileName)
-    {
-        var name = Path.GetFileNameWithoutExtension(fileName);
-        var parts = name.Split('_');
-
-        var studentName = parts.Length >= 2
-            ? $"{parts[0]} {parts[1]}"
-            : parts[0];
-
-        var courseId = parts.Length >= 3 ? parts[2] : "okänd";
-
-        return (studentName, courseId);
-    }
-
-    // KursNamn_KursID.pdf → "KursID" (valfritt, andra segmentet)
-    private static string? ParseCourseIdFromFileName(string fileName)
-    {
-        var name = Path.GetFileNameWithoutExtension(fileName);
-        var parts = name.Split('_');
-        return parts.Length >= 2 ? parts[1] : null;
-    }
-
-    private static string PseudonymizeText(string text, string studentName)
-    {
-        if (string.IsNullOrWhiteSpace(studentName)) return text;
-
-        // Ersätt fullständigt namn och delar av det
-        var parts = studentName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        var result = text;
-
-        // Ersätt fullt namn först (viktigast)
-        result = result.Replace(studentName, "[Student]", StringComparison.OrdinalIgnoreCase);
-
-        // Ersätt förnamn och efternamn separat
-        foreach (var part in parts.Where(p => p.Length > 2))
-            result = result.Replace(part, "[Student]", StringComparison.OrdinalIgnoreCase);
-
-        return result;
-    }
-
     private string ResolvePath(string relativePath)
     {
-        // ContentRootPath pekar på projektkatalogen (där .csproj och appsettings.json finns),
-        // oavsett om appen körs via dotnet run eller från bin/Debug.
+        // ContentRootPath points to the project directory (where .csproj and appsettings.json live),
+        // regardless of whether the app runs via dotnet run or from bin/Debug.
         return Path.GetFullPath(Path.Combine(_env.ContentRootPath, relativePath));
     }
 }
