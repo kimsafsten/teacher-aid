@@ -1,0 +1,106 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "feedback",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "608b9e4c-964e-410c-a9e5-91e8f8251055",
+      "name": "Webhook",
+      "webhookId": "c76bca2c-efdd-4220-92b4-5844e9c3afb6"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://ollama:11434/api/generate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"llama3\",\n  \"prompt\": \"Du är en hjälpsam lärare. Analysera följande studentinlämning och ge:\\n1. En kort sammanfattning (2-3 meningar)\\n2. Konstruktiv feedback\\n3. Ett betygsförslag (IG, G eller VG)\\n\\nInlämning:\\n{{ $json.body.content }}\\n\\nKurs: {{ $json.body.courseId }}\",\n  \"stream\": false\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "8328ded1-8893-4860-8ac1-957b01036af2",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO \"FeedbackDrafts\" (\"SubmissionId\", \"AiFeedback\", \"Summary\", \"CreatedAt\", \"Approved\")\nVALUES ($1, $2, 'AI-genererad sammanfattning', NOW(), false)",
+        "options": {
+          "queryReplacement": "=[{{ $('Webhook').item.json.body.submissionId }}, \"{{ $json.response }}\"]"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        416,
+        0
+      ],
+      "id": "8c100d61-dbad-484b-a834-b7b34b3c0325",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "JpRduEwhROoIQanN",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "d74da054-1e24-4dba-b5ec-3002a768cd10",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5f47d39fae41411fabea22df571837bf4235870af2ace4f08f3782a59182f2e2"
+  },
+  "nodeGroups": [],
+  "id": "1ZfEkK6EeRqYpcGe",
+  "tags": []
+}

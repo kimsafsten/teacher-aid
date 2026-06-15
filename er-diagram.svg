@@ -11,7 +11,11 @@
   <text x="410" y="28" text-anchor="middle" font-family="system-ui,sans-serif" font-size="14" font-weight="700" fill="#fff">ER Diagram – TeacherAid Data Model</text>
 
   <!-- ===== Submission ===== -->
+<<<<<<< Updated upstream
   <rect x="30" y="50" width="180" height="190" rx="8" fill="#0d1f3c" stroke="#4a7cf7" stroke-width="2"/>
+=======
+  <rect x="30" y="50" width="180" height="155" rx="8" fill="#0d1f3c" stroke="#4a7cf7" stroke-width="2"/>
+>>>>>>> Stashed changes
   <rect x="30" y="50" width="180" height="30" rx="8" fill="#4a7cf7"/>
   <rect x="30" y="68" width="180" height="12" fill="#4a7cf7"/>
   <text x="120" y="70" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" font-weight="700" fill="#fff">Submission</text>
@@ -22,6 +26,7 @@
   <text x="40" y="145" font-family="system-ui,sans-serif" font-size="10" fill="#ccd9ff">Content: string</text>
   <text x="40" y="161" font-family="system-ui,sans-serif" font-size="10" fill="#ccd9ff">SourceFileName: string?</text>
   <text x="40" y="177" font-family="system-ui,sans-serif" font-size="10" fill="#ccd9ff">SubmittedAt: DateTime</text>
+<<<<<<< Updated upstream
   <text x="40" y="193" font-family="system-ui,sans-serif" font-size="10" fill="#ccd9ff">FeedbackStatus: string</text>
   <text x="40" y="209" font-family="system-ui,sans-serif" font-size="10" fill="#ccd9ff">IsProcessed: bool</text>
   <text x="40" y="225" font-family="system-ui,sans-serif" font-size="10" fill="#ccd9ff">WebhookUrl: string?</text>
@@ -40,6 +45,24 @@
   <text x="40" y="397" font-family="system-ui,sans-serif" font-size="10" fill="#ffd0a0">TeacherGrade: string?</text>
   <text x="40" y="413" font-family="system-ui,sans-serif" font-size="10" fill="#ffd0a0">Approved: bool</text>
   <text x="40" y="429" font-family="system-ui,sans-serif" font-size="10" fill="#ffd0a0">CreatedAt: DateTime</text>
+=======
+  <text x="40" y="193" font-family="system-ui,sans-serif" font-size="10" fill="#ccd9ff">FeedbackDraft: nav</text>
+
+  <!-- ===== FeedbackDraft ===== -->
+  <rect x="30" y="235" width="180" height="195" rx="8" fill="#0d1f3c" stroke="#e67e22" stroke-width="2"/>
+  <rect x="30" y="235" width="180" height="30" rx="8" fill="#e67e22"/>
+  <rect x="30" y="253" width="180" height="12" fill="#e67e22"/>
+  <text x="120" y="255" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" font-weight="700" fill="#fff">FeedbackDraft</text>
+  <line x1="30" y1="265" x2="210" y2="265" stroke="#e67e22" stroke-width="1"/>
+  <text x="40" y="282" font-family="system-ui,sans-serif" font-size="10" fill="#ffe0b2">🔑 Id: int</text>
+  <text x="40" y="298" font-family="system-ui,sans-serif" font-size="10" fill="#ffe0b2">🔗 SubmissionId: int</text>
+  <text x="40" y="314" font-family="system-ui,sans-serif" font-size="10" fill="#ffd0a0">Summary: string</text>
+  <text x="40" y="330" font-family="system-ui,sans-serif" font-size="10" fill="#ffd0a0">AiFeedback: string</text>
+  <text x="40" y="346" font-family="system-ui,sans-serif" font-size="10" fill="#ffd0a0">TeacherFeedback: string?</text>
+  <text x="40" y="362" font-family="system-ui,sans-serif" font-size="10" fill="#ffd0a0">TeacherGrade: string?</text>
+  <text x="40" y="378" font-family="system-ui,sans-serif" font-size="10" fill="#ffd0a0">Approved: bool</text>
+  <text x="40" y="394" font-family="system-ui,sans-serif" font-size="10" fill="#ffd0a0">CreatedAt: DateTime</text>
+>>>>>>> Stashed changes
 
   <!-- ===== AutomationLog ===== -->
   <rect x="300" y="50" width="180" height="160" rx="8" fill="#0d1f3c" stroke="#9b59b6" stroke-width="2"/>
@@ -81,9 +104,15 @@
   <text x="570" y="381" font-family="system-ui,sans-serif" font-size="10" fill="#c0fff8">Embedding: Vector?</text>
 
   <!-- Relations -->
+<<<<<<< Updated upstream
   <line x1="120" y1="240" x2="120" y2="270" stroke="#888" stroke-width="1.5" marker-end="url(#fk)"/>
   <text x="125" y="258" font-family="system-ui,sans-serif" font-size="9" fill="#aaa">1</text>
   <text x="125" y="268" font-family="system-ui,sans-serif" font-size="9" fill="#aaa">*</text>
+=======
+  <line x1="120" y1="205" x2="120" y2="235" stroke="#888" stroke-width="1.5" marker-end="url(#fk)"/>
+  <text x="125" y="223" font-family="system-ui,sans-serif" font-size="9" fill="#aaa">1</text>
+  <text x="125" y="233" font-family="system-ui,sans-serif" font-size="9" fill="#aaa">1</text>
+>>>>>>> Stashed changes
 
   <line x1="210" y1="110" x2="300" y2="110" stroke="#888" stroke-width="1.5" marker-end="url(#fk)"/>
   <text x="220" y="105" font-family="system-ui,sans-serif" font-size="9" fill="#aaa">1</text>
@@ -93,5 +122,9 @@
   <text x="665" y="245" font-family="system-ui,sans-serif" font-size="9" fill="#aaa">1</text>
   <text x="665" y="268" font-family="system-ui,sans-serif" font-size="9" fill="#aaa">*</text>
 
+<<<<<<< Updated upstream
   <text x="330" y="490" font-family="system-ui,sans-serif" font-size="9" fill="#888">🔑 Primary Key   🔗 Foreign Key</text>
+=======
+  <text x="290" y="490" font-family="system-ui,sans-serif" font-size="9" fill="#888">🔑 Primary Key   🔗 Foreign Key   nav = navigation property</text>
+>>>>>>> Stashed changes
 </svg>
