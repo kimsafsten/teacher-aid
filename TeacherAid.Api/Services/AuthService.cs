@@ -8,14 +8,19 @@ namespace TeacherAid.Api.Services
     public class AuthService
     {
         private readonly string _key;
-        private const string TeacherUsername = "anna";
-        private const string TeacherPassword = "password123";
+        private readonly string _username;
+        private readonly string _password;
 
-        public AuthService(string key) => _key = key;
+        public AuthService(string key, string username, string password)
+        {
+            _key = key;
+            _username = username;
+            _password = password;
+        }
 
         public string? Login(string username, string password)
         {
-            if (username != TeacherUsername || password != TeacherPassword)
+            if (username != _username || password != _password)
                 return null;
 
             var tokenHandler = new JwtSecurityTokenHandler();
