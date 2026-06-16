@@ -1,6 +1,7 @@
 namespace TeacherAid.Api.Controllers
 {
     using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
     using TeacherAid.Api.Data;
@@ -16,12 +17,16 @@ namespace TeacherAid.Api.Controllers
         private readonly AppDbContext _db;
         private readonly IHttpClientFactory _http;
         private readonly RagService _rag;
+        private readonly IConfiguration _config;
+        private readonly IWebHostEnvironment _env;
 
-        public SubmissionsController(AppDbContext db, IHttpClientFactory http, RagService rag)
+        public SubmissionsController(AppDbContext db, IHttpClientFactory http, RagService rag, IConfiguration config, IWebHostEnvironment env)
         {
             _db = db;
             _http = http;
             _rag = rag;
+            _config = config;
+            _env = env;
         }
 
         // 1. Ta emot studentinlämning
@@ -160,7 +165,42 @@ namespace TeacherAid.Api.Controllers
             return Ok(pending);
         }
 
-        // 6. Hämta automationsloggar (läraren kan se historik)
+        // 7. Servera den ursprungliga inlämningsfilen
+        [HttpGet("{id}/file")]
+        public async Task<IActionResult> GetFile(int id)
+        {
+            var submission = await _db.Submissions.FindAsync(id);
+            if (submission?.SourceFileName == null) return NotFound();
+
+            var root = Path.GetFullPath(Path.Combine(_env.ContentRootPath,
+                _config["FolderPaths:Inlamningar"] ?? "../inlamningar"));
+
+            // Försök direkt sökväg först, sök sedan rekursivt (hanterar gamla inlämningar utan AssignmentId)
+            var filePath = Path.Combine(root, submission.CourseId, submission.AssignmentId, submission.SourceFileName);
+            if (!System.IO.File.Exists(filePath))
+            {
+                filePath = Directory
+                    .GetFiles(root, submission.SourceFileName, SearchOption.AllDirectories)
+                    .FirstOrDefault()!;
+            }
+
+            if (filePath == null || !System.IO.File.Exists(filePath))
+                return NotFound("Filen hittades inte på disk");
+
+            var ext = Path.GetExtension(filePath).ToLowerInvariant();
+            var contentType = ext switch
+            {
+                ".pdf"  => "application/pdf",
+                ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                ".txt"  => "text/plain; charset=utf-8",
+                _       => "application/octet-stream"
+            };
+
+            var stream = System.IO.File.OpenRead(filePath);
+            return File(stream, contentType, submission.SourceFileName);
+        }
+
+        // 8. Hämta automationsloggar (läraren kan se historik)
         [HttpGet("logs")]
         public async Task<IActionResult> GetLogs()
         {

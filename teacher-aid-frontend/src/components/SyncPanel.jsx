@@ -39,11 +39,23 @@ export default function SyncPanel() {
   const [openGroups, setOpenGroups] = useState({})
   const [reviewingId, setReviewingId] = useState(null)
   const [expandedId, setExpandedId] = useState(null)
-  const [editState, setEditState] = useState({})
+  const [editStates, setEditStates] = useState({})
   const [saving, setSaving] = useState(false)
   const pollingRefs = useRef({})
   const { token } = useAuth()
   const headers = { Authorization: `Bearer ${token}` }
+
+  async function downloadFile(submissionId, fileName) {
+    const res = await fetch(`${API}/submissions/${submissionId}/file`, { headers })
+    if (!res.ok) return alert('Kunde inte hämta filen')
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = fileName
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   useEffect(() => {
     fetchSubmissions()
@@ -97,13 +109,13 @@ export default function SyncPanel() {
         fetchSubmissions()
       } catch {
         attempts++
-        if (attempts >= 30) {
+        if (attempts >= 20) {
           clearInterval(pollingRefs.current[id])
           setPollingIds(prev => { const next = new Set(prev); next.delete(id); return next })
           alert(`Timeout – kunde inte hämta feedback för inlämning #${id}`)
         }
       }
-    }, 2000)
+    }, 15000)
   }
 
   const handleProcess = async (s) => {
@@ -116,22 +128,42 @@ export default function SyncPanel() {
   }
 
   const handleOpenReview = (s) => {
+    if (reviewingId === s.id) {
+      setReviewingId(null)
+      return
+    }
     setReviewingId(s.id)
-    setEditState({
-      feedback: s.feedback?.teacherFeedback ?? s.feedback?.aiFeedback ?? '',
-      grade: s.feedback?.teacherGrade ?? 'G'
-    })
+    // Initiera state bara om det inte redan finns (bevara ändringar vid kollaps)
+    if (!editStates[s.id]) {
+      setEditStates(prev => ({
+        ...prev,
+        [s.id]: {
+          feedback: s.feedback?.teacherFeedback ?? s.feedback?.aiFeedback ?? '',
+          grade: s.feedback?.teacherGrade ?? 'G'
+        }
+      }))
+    }
+  }
+
+  const editState = editStates[reviewingId] ?? { feedback: '', grade: 'G' }
+  const setEditState = (updater) => {
+    setEditStates(prev => ({
+      ...prev,
+      [reviewingId]: typeof updater === 'function' ? updater(prev[reviewingId]) : updater
+    }))
   }
 
   const handleApprove = async (id) => {
     setSaving(true)
     try {
+      const state = editStates[id]
       await axios.put(
         `${API}/submissions/${id}/feedback`,
-        { teacherFeedback: editState.feedback, teacherGrade: editState.grade },
+        { teacherFeedback: state.feedback, teacherGrade: state.grade },
         { headers }
       )
       setReviewingId(null)
+      setEditStates(prev => { const next = { ...prev }; delete next[id]; return next })
       fetchSubmissions()
     } catch (err) {
       alert('Kunde inte spara: ' + err.message)
@@ -226,7 +258,18 @@ export default function SyncPanel() {
                       <p className="text-sm font-medium text-gray-900">{s.studentName}</p>
                       <p className="text-xs text-gray-400 mt-0.5">
                         {s.courseId}
-                        {s.sourceFileName && <span className="text-gray-300"> · {s.sourceFileName}</span>}
+                        {s.sourceFileName && (
+                          <>
+                            <span className="text-gray-300"> · </span>
+                            <button
+                              type="button"
+                              onClick={() => downloadFile(s.id, s.sourceFileName)}
+                              className="text-blue-400 hover:text-blue-600 hover:underline transition-colors"
+                            >
+                              {s.sourceFileName}
+                            </button>
+                          </>
+                        )}
                         <span className="text-gray-300"> · </span>
                         {new Date(s.submittedAt).toLocaleString('sv-SE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                       </p>
@@ -252,9 +295,13 @@ export default function SyncPanel() {
                       {s.feedback && !s.feedback.approved && !pollingIds.has(s.id) && (
                         <button
                           onClick={() => handleOpenReview(s)}
-                          className="text-xs font-medium px-3 py-1.5 rounded-lg border border-blue-200 text-blue-700 hover:bg-blue-50 transition-colors"
+                          className={`text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors ${
+                            reviewingId === s.id
+                              ? 'border-blue-300 bg-blue-50 text-blue-700'
+                              : 'border-blue-200 text-blue-700 hover:bg-blue-50'
+                          }`}
                         >
-                          Granska
+                          {reviewingId === s.id ? '▲ Granska' : 'Granska'}
                         </button>
                       )}
 
@@ -290,7 +337,7 @@ export default function SyncPanel() {
                       <div>
                         <label className="block text-xs font-medium text-gray-500 mb-1.5">Feedback</label>
                         <textarea
-                          className="w-full border border-gray-200 rounded-lg p-2.5 text-sm text-gray-900 h-32 resize-none focus:outline-none focus:border-blue-400"
+                          className="w-full border border-gray-200 rounded-lg p-2.5 text-sm text-gray-900 h-64 resize-y focus:outline-none focus:border-blue-400"
                           value={editState.feedback}
                           onChange={e => setEditState(prev => ({ ...prev, feedback: e.target.value }))}
                         />
@@ -312,7 +359,7 @@ export default function SyncPanel() {
                           onClick={() => setReviewingId(null)}
                           className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
                         >
-                          Avbryt
+                          Fäll ihop
                         </button>
                         <button
                           onClick={() => handleApprove(s.id)}
