@@ -6,6 +6,7 @@ namespace TeacherAid.Api.Controllers
     using TeacherAid.Api.Data;
     using TeacherAid.Api.Models;
     using TeacherAid.Api.DTO;
+    using TeacherAid.Api.Services;
 
     [Authorize]
     [ApiController]
@@ -14,11 +15,13 @@ namespace TeacherAid.Api.Controllers
     {
         private readonly AppDbContext _db;
         private readonly IHttpClientFactory _http;
+        private readonly RagService _rag;
 
-        public SubmissionsController(AppDbContext db, IHttpClientFactory http)
+        public SubmissionsController(AppDbContext db, IHttpClientFactory http, RagService rag)
         {
             _db = db;
             _http = http;
+            _rag = rag;
         }
 
         // 1. Ta emot studentinlämning
@@ -51,40 +54,34 @@ namespace TeacherAid.Api.Controllers
             _db.AutomationLogs.Add(log);
             await _db.SaveChangesAsync();
 
-            try
-            {
-                var client = _http.CreateClient();
-                var response = await client.PostAsJsonAsync("http://localhost:5678/webhook/feedback", new
-                {
-                    submissionId = submission.Id,
-                    studentName = submission.StudentName,
-                    courseId = submission.CourseId,
-                    content = submission.Content
-                });
+            // Hämta uppgiftsbeskrivning och bedömningsmall för uppgiften.
+            var context = await _rag.GetAssignmentContext(submission.CourseId, submission.AssignmentId);
 
-                if (response.IsSuccessStatusCode)
-                {
-                    log.Status = "success";
-                }
-                else
-                {
-                    log.Status = "failed";
-                    log.ErrorMessage = $"n8n svarade med statuskod {(int)response.StatusCode}";
-                }
-            }
-            catch (Exception ex)
+            // Fire-and-forget: trigga n8n utan att vänta på svar.
+            // Ollama kan ta flera minuter — frontendet pollar ändå för resultatet.
+            var payload = new
             {
-                log.Status = "failed";
-                log.ErrorMessage = ex.Message;
-            }
-            finally
+                submissionId = submission.Id,
+                courseId = submission.CourseId,
+                assignmentId = submission.AssignmentId,
+                content = submission.Content,
+                uppgiftsbeskrivning = context.Uppgiftsbeskrivning,
+                bedömningsmall = context.Bedömningsmall
+            };
+            _ = Task.Run(async () =>
             {
-                await _db.SaveChangesAsync();
-            }
+                try
+                {
+                    using var client = _http.CreateClient("ollama"); // 5 min timeout
+                    await client.PostAsJsonAsync("http://localhost:5678/webhook/feedback", payload);
+                }
+                catch
+                {
+                    // Fel loggas inte här — det viktigaste är att webhooken skickades.
+                }
+            });
 
-            return log.Status == "success"
-                ? Ok("Processing started")
-                : StatusCode(502, new { error = "n8n-anropet misslyckades", detail = log.ErrorMessage });
+            return Ok("Processing started");
         }
 
         // 3. Hämta feedbackutkast
