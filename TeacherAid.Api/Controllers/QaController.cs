@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TeacherAid.Api.Data;
+using TeacherAid.Api.Models;
 using TeacherAid.Api.Services;
 
 [ApiController]
@@ -23,7 +24,7 @@ public class QaController : ControllerBase
     [HttpPost("documents")]
     public async Task<IActionResult> UploadDocument([FromBody] UploadDocumentDto dto)
     {
-        await _rag.IndexDocument(dto.CourseId, dto.FileName, dto.Content);
+        await _rag.IndexDocument(dto.CourseId, "", DocumentType.Kursmaterial, dto.FileName, dto.Content);
         return Ok("Dokument indexerat");
     }
 
