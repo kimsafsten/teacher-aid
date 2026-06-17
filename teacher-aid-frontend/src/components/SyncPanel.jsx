@@ -190,13 +190,18 @@ export default function SyncPanel() {
               {' · '}Format: <code className="bg-gray-100 px-1 rounded text-gray-600">Förnamn_Efternamn_KursID_Uppgift.pdf</code>
             </p>
           </div>
-          <button
-            onClick={handleSync}
-            disabled={syncing}
-            className="bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap transition-colors"
-          >
-            {syncing ? 'Synkar…' : '↻ Synka nu'}
-          </button>
+          <div className="flex flex-col items-end gap-1">
+            <button
+              onClick={handleSync}
+              disabled={syncing}
+              className="bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap transition-colors"
+            >
+              {syncing ? 'Synkar…' : '↻ Synka nu'}
+            </button>
+            <p className="text-xs text-gray-400 text-right">
+              Kom ihåg: lägg in <code className="bg-gray-100 px-1 rounded text-gray-500">uppgiftsbeskrivning</code> och <code className="bg-gray-100 px-1 rounded text-gray-500">bedömningsmall</code> i uppgiftsmappen först.
+            </p>
+          </div>
         </div>
 
         {syncResult && (
@@ -206,8 +211,11 @@ export default function SyncPanel() {
               <p className="text-green-700 font-medium">✓ {syncResult.processedCount} ny/nya inlämning(ar) importerade</p>
             )}
             {syncResult.processed?.map(f => <p key={f} className="text-gray-400 pl-2">– {f}</p>)}
+            {syncResult.warnings?.map(w => (
+              <p key={w} className="text-amber-600 pl-2">⚠ {w}</p>
+            ))}
             {syncResult.errors?.map(e => <p key={e} className="text-red-500 pl-2">✗ {e}</p>)}
-            {syncResult.processedCount === 0 && syncResult.errorCount === 0 && !syncResult.message && (
+            {syncResult.processedCount === 0 && syncResult.errorCount === 0 && syncResult.warningCount === 0 && !syncResult.message && (
               <p className="text-gray-400">Inga nya filer att importera.</p>
             )}
           </div>

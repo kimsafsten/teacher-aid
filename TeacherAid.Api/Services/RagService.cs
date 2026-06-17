@@ -120,15 +120,16 @@ public class RagService
             .ToListAsync();
 
         if (!relevantChunks.Any())
-            return "Jag hittade inget relevant kursmaterial för den frågan.";
+            return "Jag hittade inget relevant kursmaterial för den frågan. Vänligen ta kontakt med din lärare för att få svar.";
 
         var context = string.Join("\n\n", relevantChunks.Select(c => c.Text));
 
         var prompt = $"""
             Du är en hjälpsam kursassistent för läraren Anna Lindqvist på Yrkesakademin.
             Svara på studentens fråga baserat ENDAST på kursmaterialet nedan.
-            Om svaret inte finns i materialet, säg det istället för att gissa.
+            Om svaret inte finns i materialet, säg att du inte kan svara på frågan och uppmanar studenten att ta kontakt med läraren för att få svar.
             Svara på svenska och håll svaret kort och tydligt.
+            Stava alltid korrekt och använd aldrig stora bokstäver mitt i meningar eller ord.
 
             Kursmaterial:
             {context}

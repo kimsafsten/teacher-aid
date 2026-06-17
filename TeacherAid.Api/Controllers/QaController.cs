@@ -31,6 +31,9 @@ public class QaController : ControllerBase
     [HttpPost("ask")]
     public async Task<IActionResult> Ask([FromBody] AskQuestionDto dto)
     {
+        if (dto.Question.Length > 400)
+            return BadRequest(new { error = "Frågan får inte vara längre än 400 tecken." });
+
         var answer = await _rag.AskQuestion(dto.CourseId, dto.Question);
         return Ok(new { answer });
     }

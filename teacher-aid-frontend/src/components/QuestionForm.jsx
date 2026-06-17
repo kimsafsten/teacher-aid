@@ -33,13 +33,19 @@ export default function QuestionForm() {
         onChange={e => setCourseId(e.target.value)}
         required
       />
-      <textarea
-        className="w-full border rounded p-2 h-24"
-        placeholder="Din fråga..."
-        value={question}
-        onChange={e => setQuestion(e.target.value)}
-        required
-      />
+      <div className="relative">
+        <textarea
+          className="w-full border rounded p-2 h-24"
+          placeholder="Din fråga..."
+          value={question}
+          onChange={e => setQuestion(e.target.value)}
+          maxLength={400}
+          required
+        />
+        <span className={`text-xs absolute bottom-2 right-2 ${question.length > 360 ? 'text-red-500' : 'text-gray-400'}`}>
+          {question.length}/400
+        </span>
+      </div>
       <button
         type="submit"
         disabled={loading}
