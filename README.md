@@ -55,6 +55,11 @@ Skapa `TeacherAid.Api/appsettings.Development.json`:
   },
   "ConnectionStrings": {
     "DefaultConnection": "Host=localhost;Port=5434;Database=teacheraiddb;Username=postgres;Password=postgres"
+  },
+  "FolderPaths": {
+    "Kursmaterial": "../kursmaterial",
+    "Inlamningar":  "../inlamningar",
+    "Genererat":    "../genererat"
   }
 }
 ```
@@ -102,7 +107,10 @@ Standardkonto för Anna Lindqvist:
 | GET | `/api/submissions/logs` | Se automationslogg |
 | POST | `/api/qa/documents` | Ladda upp kursdokument |
 | POST | `/api/qa/ask` | Ställ kursfråga (RAG) |
-| POST | `/api/qa/generate-material` | Generera kursmaterial |
+| POST | `/api/qa/generate-material` | Generera kursmaterial (sparas i `genererat/`) |
+| GET | `/api/qa/generated` | Lista genererade filer |
+| GET | `/api/qa/generated/{fileName}` | Hämta innehåll i en genererad fil |
+| PUT | `/api/qa/generated/{fileName}` | Spara redigerat innehåll till fil |
 
 ---
 
@@ -134,7 +142,6 @@ Workflowen tar emot studentdata via webhook, anropar Ollama för feedbackgenerer
 - **Feedback visas inte på inlämningen** — AI-genererat feedbackutkast dyker inte upp direkt under inlämningen i gränssnittet. Läraren måste manuellt kopiera över feedbacken.
 - **Kursmaterial kan inte redigeras i gränssnittet** — det finns inget sätt att uppdatera eller ta bort uppladdade kursdokument via frontend.
 - **Feedback kan inte redigeras direkt på sidan** — läraren kan inte justera AI-feedbacken inline utan måste hantera det utanför systemet.
-- **Genererat kursmaterial kan inte exporteras** — när AI genererat kursmaterial finns inget sätt att spara det direkt som ett dokument. Läraren måste manuellt kopiera innehållet till en extern dokumenthanterare.
 - **Frontend stöder i dagsläget endast en kurs** — backend hanterar flera kurser via courseId, men frontend har kurs-ID:t förifyllt med `SYS25D`. Elever kan inte välja kurs i gränssnittet.
 - **Elevfrågor är begränsade till 400 tecken** — för att motverka att elever klistrar in hela uppgifter och för att minska risken för prompt injection. Validering sker i både frontend och backend.
 - **Elever loggar inte in (by design)** — elever ställer anonyma frågor utan autentisering, eftersom funktionen är begränsad till generella kursfrågor. Allt som kräver inloggning är förbehållet läraren.

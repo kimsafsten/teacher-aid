@@ -1,18 +1,42 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
 
 const API = 'http://localhost:5010/api'
+const STORAGE_KEY = 'teacher_aid_last_material'
 
 export default function MaterialGenerator() {
-  const [courseId, setCourseId]         = useState('')
-  const [instruction, setInstruction]   = useState('')
-  const [result, setResult]             = useState(null)
-  const [loading, setLoading]           = useState(false)
-  const [syncing, setSyncing]           = useState(false)
-  const [syncResult, setSyncResult]     = useState(null)
+  const [courseId, setCourseId]           = useState('')
+  const [instruction, setInstruction]     = useState('')
+  const [result, setResult]               = useState(null)
+  const [editedContent, setEditedContent] = useState('')
+  const [loading, setLoading]             = useState(false)
+  const [saving, setSaving]               = useState(false)
+  const [saved, setSaved]                 = useState(false)
+  const [syncing, setSyncing]             = useState(false)
+  const [syncResult, setSyncResult]       = useState(null)
+  const [history, setHistory]             = useState([])
   const { token } = useAuth()
   const headers = { Authorization: `Bearer ${token}` }
+
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (stored) {
+      const parsed = JSON.parse(stored)
+      setResult(parsed)
+      setEditedContent(parsed.content)
+    }
+    fetchHistory()
+  }, [])
+
+  const fetchHistory = async () => {
+    try {
+      const { data } = await axios.get(`${API}/qa/generated`, { headers })
+      setHistory(data.files ?? [])
+    } catch {
+      // tyst fel – historik är inte kritisk
+    }
+  }
 
   const handleSync = async () => {
     setSyncing(true)
@@ -31,19 +55,73 @@ export default function MaterialGenerator() {
     e.preventDefault()
     setLoading(true)
     setResult(null)
+    setEditedContent('')
+    setSaved(false)
     try {
       const { data } = await axios.post(
         `${API}/qa/generate-material`,
         { courseId, instruction },
         { headers }
       )
-      setResult(data.content)
+      const newResult = {
+        content: data.content,
+        savedAs: data.savedAs,
+        courseId,
+        generatedAt: new Date().toLocaleString('sv-SE'),
+      }
+      setResult(newResult)
+      setEditedContent(data.content)
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newResult))
+      await fetchHistory()
     } catch (err) {
-      setResult('Något gick fel: ' + err.message)
+      const errResult = { content: 'Något gick fel: ' + err.message }
+      setResult(errResult)
+      setEditedContent(errResult.content)
     } finally {
       setLoading(false)
     }
   }
+
+  const handleSave = async () => {
+    if (!result?.savedAs) return
+    setSaving(true)
+    setSaved(false)
+    try {
+      await axios.put(
+        `${API}/qa/generated/${result.savedAs}`,
+        { content: editedContent },
+        { headers }
+      )
+      const updated = { ...result, content: editedContent }
+      setResult(updated)
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch (err) {
+      alert('Kunde inte spara: ' + err.message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleLoadHistory = async (fileName) => {
+    try {
+      const { data } = await axios.get(`${API}/qa/generated/${fileName}`, { headers })
+      const loaded = {
+        content: data.content,
+        savedAs: fileName,
+        generatedAt: history.find(f => f.fileName === fileName)?.generatedAt ?? '',
+      }
+      setResult(loaded)
+      setEditedContent(data.content)
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(loaded))
+      setSaved(false)
+    } catch (err) {
+      alert('Kunde inte läsa filen: ' + err.message)
+    }
+  }
+
+  const isDirty = result && editedContent !== result.content
 
   return (
     <div className="space-y-4">
@@ -120,13 +198,61 @@ export default function MaterialGenerator() {
 
         {result && (
           <div className="mt-4 pt-4 border-t border-gray-100">
-            <p className="text-xs font-medium text-gray-500 mb-2">Resultat</p>
-            <div className="bg-gray-50 rounded-lg p-3 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-              {result}
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs font-medium text-gray-500">Resultat</p>
+              <div className="flex items-center gap-3">
+                {result.generatedAt && (
+                  <p className="text-xs text-gray-400">{result.generatedAt}</p>
+                )}
+                {result.savedAs && (
+                  <button
+                    onClick={handleSave}
+                    disabled={saving || !isDirty}
+                    className={`text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${
+                      saved
+                        ? 'bg-green-50 text-green-700'
+                        : isDirty
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'bg-gray-100 text-gray-400 cursor-default'
+                    } disabled:opacity-50`}
+                  >
+                    {saving ? 'Sparar…' : saved ? '✓ Sparat' : 'Spara'}
+                  </button>
+                )}
+              </div>
             </div>
+            <textarea
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 leading-relaxed resize-y focus:outline-none focus:border-blue-400"
+              style={{ minHeight: '200px' }}
+              value={editedContent}
+              onChange={e => { setEditedContent(e.target.value); setSaved(false) }}
+            />
           </div>
         )}
       </div>
+
+      {/* Historik */}
+      {history.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+          <h2 className="text-sm font-semibold text-gray-900 mb-3">Tidigare genererat</h2>
+          <div className="space-y-1">
+            {history.map(file => (
+              <button
+                key={file.fileName}
+                onClick={() => handleLoadHistory(file.fileName)}
+                className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                  result?.savedAs === file.fileName
+                    ? 'bg-blue-50 text-blue-700'
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                <span className="font-medium">{file.fileName}</span>
+                <span className="ml-2 text-xs text-gray-400">{file.generatedAt}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

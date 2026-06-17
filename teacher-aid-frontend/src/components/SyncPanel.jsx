@@ -67,6 +67,7 @@ export default function SyncPanel() {
     try {
       const { data } = await axios.get(`${API}/submissions/all`, { headers })
       setSubmissions(data)
+      data.filter(s => !s.feedback).forEach(s => startPolling(s.id))
       // Open all groups by default
       const groups = groupByAssignment(data)
       setOpenGroups(prev => {
@@ -98,8 +99,8 @@ export default function SyncPanel() {
   }
 
   const startPolling = (id) => {
+    if (pollingRefs.current[id]) return
     setPollingIds(prev => new Set([...prev, id]))
-    let attempts = 0
     pollingRefs.current[id] = setInterval(async () => {
       try {
         await axios.get(`${API}/submissions/${id}/feedback`, { headers })
@@ -108,23 +109,9 @@ export default function SyncPanel() {
         setPollingIds(prev => { const next = new Set(prev); next.delete(id); return next })
         fetchSubmissions()
       } catch {
-        attempts++
-        if (attempts >= 20) {
-          clearInterval(pollingRefs.current[id])
-          setPollingIds(prev => { const next = new Set(prev); next.delete(id); return next })
-          alert(`Timeout – kunde inte hämta feedback för inlämning #${id}`)
-        }
+        // fortsätt polla tills svar kommer
       }
     }, 15000)
-  }
-
-  const handleProcess = async (s) => {
-    try {
-      await axios.post(`${API}/submissions/${s.id}/process`, {}, { headers })
-      startPolling(s.id)
-    } catch (err) {
-      alert('Kunde inte starta AI-granskning: ' + err.message)
-    }
   }
 
   const handleOpenReview = (s) => {
@@ -187,7 +174,7 @@ export default function SyncPanel() {
             <h2 className="text-sm font-semibold text-gray-900">Inlämningar</h2>
             <p className="text-xs text-gray-400 mt-0.5">
               Lägg filer i <code className="bg-gray-100 px-1 rounded text-gray-600">inlamningar/</code>
-              {' · '}Format: <code className="bg-gray-100 px-1 rounded text-gray-600">Förnamn_Efternamn_KursID_Uppgift.pdf</code>
+              {' · '}Format: <code className="bg-gray-100 px-1 rounded text-gray-600">Förnamn_Efternamn_KursID.pdf/.docx</code>
             </p>
           </div>
           <div className="flex flex-col items-end gap-1">
@@ -289,15 +276,6 @@ export default function SyncPanel() {
                         <span className="text-xs font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
                           {s.feedback.teacherGrade}
                         </span>
-                      )}
-
-                      {!s.feedback && !pollingIds.has(s.id) && (
-                        <button
-                          onClick={() => handleProcess(s)}
-                          className="text-xs font-medium px-3 py-1.5 rounded-lg border border-green-200 text-green-700 hover:bg-green-50 transition-colors"
-                        >
-                          Ge AI-feedback
-                        </button>
                       )}
 
                       {s.feedback && !s.feedback.approved && !pollingIds.has(s.id) && (

@@ -26,7 +26,7 @@ public class SyncController : ControllerBase
 
     /// <summary>
     /// Skannar inlämnings-mappen, pseudonymiserar och skapar Submission-poster.
-    /// Filnamnsformat: Förnamn_Efternamn_KursID_valfritt.pdf
+    /// Filnamnsformat: Förnamn_Efternamn_KursID.pdf/.docx (uppgiftsnamn är valfritt, t.ex. Förnamn_Efternamn_KursID_Uppgift.pdf)
     /// </summary>
     [HttpPost("inlamningar")]
     public async Task<IActionResult> SyncInlamningar()

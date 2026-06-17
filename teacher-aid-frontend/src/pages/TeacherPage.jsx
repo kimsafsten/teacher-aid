@@ -71,8 +71,8 @@ export default function TeacherPage() {
 
       {/* Content */}
       <main className="max-w-2xl mx-auto px-4 py-6">
-        {view === 'inlamningar' && <SyncPanel />}
-        {view === 'material'    && <MaterialGenerator />}
+        <div className={view === 'inlamningar' ? '' : 'hidden'}><SyncPanel /></div>
+        <div className={view === 'material' ? '' : 'hidden'}><MaterialGenerator /></div>
       </main>
     </div>
   )
