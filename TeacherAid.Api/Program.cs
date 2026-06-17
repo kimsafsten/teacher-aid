@@ -22,7 +22,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
-builder.Services.AddSingleton(new TeacherAid.Api.Services.AuthService(jwtKey));
+var authUser = builder.Configuration["Auth:Username"] ?? "anna";
+var authPass = builder.Configuration["Auth:Password"]
+    ?? throw new InvalidOperationException("Auth:Password saknas i konfigurationen.");
+builder.Services.AddSingleton(new TeacherAid.Api.Services.AuthService(jwtKey, authUser, authPass));
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),

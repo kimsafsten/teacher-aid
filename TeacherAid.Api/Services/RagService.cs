@@ -38,11 +38,19 @@ public class RagService
     /// <returns>A task representing the asynchronous operation.</returns>
     /// <exception cref="DbUpdateException">Thrown if saving to the database fails.</exception>
     /// <exception cref="HttpRequestException">Thrown if the LLM service is unreachable when generating embeddings.</exception>
-    public async Task IndexDocument(string courseId, string fileName, string content, string? sourceFileName = null)
+    public async Task IndexDocument(
+        string courseId,
+        string assignmentId,
+        DocumentType documentType,
+        string fileName,
+        string content,
+        string? sourceFileName = null)
     {
         var doc = new CourseDocument
         {
             CourseId = courseId,
+            AssignmentId = assignmentId,
+            DocumentType = documentType,
             FileName = fileName,
             Content = content,
             SourceFileName = sourceFileName
@@ -58,11 +66,35 @@ public class RagService
             {
                 CourseDocumentId = doc.Id,
                 CourseId = courseId,
+                AssignmentId = assignmentId,
                 Text = chunk,
                 Embedding = new Vector(floats)
             });
         }
         await _db.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Hämtar uppgiftsbeskrivning och bedömningsmall för en specifik uppgift,
+    /// som kontext till feedbackgenerering.
+    /// </summary>
+    public async Task<AssignmentContext> GetAssignmentContext(string courseId, string assignmentId)
+    {
+        var docs = await _db.CourseDocuments
+            .Where(d => d.CourseId == courseId && d.AssignmentId == assignmentId)
+            .Where(d => d.DocumentType == DocumentType.Uppgiftsbeskrivning
+                     || d.DocumentType == DocumentType.Bedömningsmall)
+            .ToListAsync();
+
+        return new AssignmentContext
+        {
+            Uppgiftsbeskrivning = docs
+                .FirstOrDefault(d => d.DocumentType == DocumentType.Uppgiftsbeskrivning)
+                ?.Content ?? "",
+            Bedömningsmall = docs
+                .FirstOrDefault(d => d.DocumentType == DocumentType.Bedömningsmall)
+                ?.Content ?? ""
+        };
     }
 
     /// <summary>
@@ -106,4 +138,11 @@ public class RagService
 
         return await _llm.GenerateAsync(prompt);
     }
+}
+
+public class AssignmentContext
+{
+    public string Uppgiftsbeskrivning { get; set; } = "";
+    public string Bedömningsmall { get; set; } = "";
+    public bool HasContext => !string.IsNullOrEmpty(Uppgiftsbeskrivning) || !string.IsNullOrEmpty(Bedömningsmall);
 }

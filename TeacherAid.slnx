@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="TeacherAid.Api/TeacherAid.Api.csproj" />
+  <Project Path="TeacherAid.Tests/TeacherAid.Tests.csproj" />
+</Solution>

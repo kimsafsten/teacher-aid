@@ -54,7 +54,7 @@ public class FolderSyncService
                 var text = _extractor.ExtractText(file);
                 // Parse course ID from the file name (second segment: DocumentName_CourseId.pdf)
                 var courseId = SubmissionFileNameParser.ParseCourseId(fileName) ?? "okänd";
-                await _rag.IndexDocument(courseId, fileName, text, fileName);
+                await _rag.IndexDocument(courseId, "", DocumentType.Kursmaterial, fileName, text, fileName);
                 result.Processed.Add(fileName);
             }
             catch (Exception ex)
@@ -66,52 +66,95 @@ public class FolderSyncService
         return result;
     }
 
+    // Filer med dessa namn i en uppgiftsmapp tolkas som mall/beskrivning, inte elevfiler.
+    private static readonly string[] AssignmentDocumentNames = ["uppgiftsbeskrivning", "bedömningsmall"];
+
     public async Task<SyncResult> SyncInlamningar()
     {
-        var folder = ResolvePath(_config["FolderPaths:Inlamningar"] ?? "../inlamningar");
+        var rootFolder = ResolvePath(_config["FolderPaths:Inlamningar"] ?? "../inlamningar");
         var result = new SyncResult();
 
-        if (!Directory.Exists(folder))
+        if (!Directory.Exists(rootFolder))
         {
-            Directory.CreateDirectory(folder);
-            result.Message = $"Mappen skapades: {folder}. Lägg in inlämningar och synka igen.";
+            Directory.CreateDirectory(rootFolder);
+            result.Message = $"Mappen skapades: {rootFolder}. Lägg in inlämningar och synka igen.";
             return result;
         }
 
-        var existingFileNames = await _db.Submissions
+        var existingSubmissions = await _db.Submissions
             .Where(s => s.SourceFileName != null)
             .Select(s => s.SourceFileName!)
             .ToListAsync();
 
-        var files = Directory.GetFiles(folder)
-            .Where(f => SupportedExtensions.Contains(Path.GetExtension(f).ToLowerInvariant()))
-            .Where(f => !existingFileNames.Contains(Path.GetFileName(f)))
-            .ToList();
+        var existingDocuments = await _db.CourseDocuments
+            .Where(d => d.SourceFileName != null)
+            .Select(d => d.SourceFileName!)
+            .ToListAsync();
 
-        foreach (var file in files)
+        // Förväntad struktur: inlämningar/{kurs}/{uppgift}/filer
+        foreach (var courseFolder in Directory.GetDirectories(rootFolder))
         {
-            var fileName = Path.GetFileName(file);
-            try
+            var courseId = Path.GetFileName(courseFolder);
+
+            foreach (var assignmentFolder in Directory.GetDirectories(courseFolder))
             {
-                var text = _extractor.ExtractText(file);
-                var (studentName, courseId) = SubmissionFileNameParser.Parse(fileName);
+                var assignmentId = Path.GetFileName(assignmentFolder);
 
-                // Replace student name occurrences in the submission text
-                var anonymizedText = TextPseudonymizer.Pseudonymize(text, studentName);
+                var files = Directory.GetFiles(assignmentFolder)
+                    .Where(f => SupportedExtensions.Contains(Path.GetExtension(f).ToLowerInvariant()))
+                    .ToList();
 
-                _db.Submissions.Add(new Submission
+                foreach (var file in files)
                 {
-                    StudentName = studentName,
-                    CourseId = courseId,
-                    Content = anonymizedText,
-                    SourceFileName = fileName
-                });
+                    var fileName = Path.GetFileName(file);
+                    var baseName = Path.GetFileNameWithoutExtension(file).ToLowerInvariant();
 
-                result.Processed.Add(fileName);
-            }
-            catch (Exception ex)
-            {
-                result.Errors.Add($"{fileName}: {ex.Message}");
+                    // Bedömningsmall och uppgiftsbeskrivning indexeras som kursdokument
+                    if (AssignmentDocumentNames.Contains(baseName))
+                    {
+                        if (existingDocuments.Contains(fileName)) continue;
+                        try
+                        {
+                            var docType = baseName == "bedömningsmall"
+                                ? DocumentType.Bedömningsmall
+                                : DocumentType.Uppgiftsbeskrivning;
+
+                            var text = _extractor.ExtractText(file);
+                            await _rag.IndexDocument(courseId, assignmentId, docType, fileName, text, fileName);
+                            result.Processed.Add($"[{docType}] {fileName}");
+                        }
+                        catch (Exception ex)
+                        {
+                            result.Errors.Add($"{fileName}: {ex.Message}");
+                        }
+                    }
+                    else
+                    {
+                        // Övriga filer är elevens inlämningar
+                        if (existingSubmissions.Contains(fileName)) continue;
+                        try
+                        {
+                            var text = _extractor.ExtractText(file);
+                            var (studentName, _) = SubmissionFileNameParser.Parse(fileName);
+                            var anonymizedText = TextPseudonymizer.Pseudonymize(text, studentName);
+
+                            _db.Submissions.Add(new Submission
+                            {
+                                StudentName = studentName,
+                                CourseId = courseId,
+                                AssignmentId = assignmentId,
+                                Content = anonymizedText,
+                                SourceFileName = fileName
+                            });
+
+                            result.Processed.Add(fileName);
+                        }
+                        catch (Exception ex)
+                        {
+                            result.Errors.Add($"{fileName}: {ex.Message}");
+                        }
+                    }
+                }
             }
         }
 

@@ -1,11 +1,13 @@
 namespace TeacherAid.Api.Controllers
 {
     using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
     using TeacherAid.Api.Data;
     using TeacherAid.Api.Models;
     using TeacherAid.Api.DTO;
+    using TeacherAid.Api.Services;
 
     [Authorize]
     [ApiController]
@@ -14,11 +16,17 @@ namespace TeacherAid.Api.Controllers
     {
         private readonly AppDbContext _db;
         private readonly IHttpClientFactory _http;
+        private readonly RagService _rag;
+        private readonly IConfiguration _config;
+        private readonly IWebHostEnvironment _env;
 
-        public SubmissionsController(AppDbContext db, IHttpClientFactory http)
+        public SubmissionsController(AppDbContext db, IHttpClientFactory http, RagService rag, IConfiguration config, IWebHostEnvironment env)
         {
             _db = db;
             _http = http;
+            _rag = rag;
+            _config = config;
+            _env = env;
         }
 
         // 1. Ta emot studentinlämning
@@ -51,40 +59,34 @@ namespace TeacherAid.Api.Controllers
             _db.AutomationLogs.Add(log);
             await _db.SaveChangesAsync();
 
-            try
-            {
-                var client = _http.CreateClient();
-                var response = await client.PostAsJsonAsync("http://localhost:5678/webhook/feedback", new
-                {
-                    submissionId = submission.Id,
-                    studentName = submission.StudentName,
-                    courseId = submission.CourseId,
-                    content = submission.Content
-                });
+            // Hämta uppgiftsbeskrivning och bedömningsmall för uppgiften.
+            var context = await _rag.GetAssignmentContext(submission.CourseId, submission.AssignmentId);
 
-                if (response.IsSuccessStatusCode)
-                {
-                    log.Status = "success";
-                }
-                else
-                {
-                    log.Status = "failed";
-                    log.ErrorMessage = $"n8n svarade med statuskod {(int)response.StatusCode}";
-                }
-            }
-            catch (Exception ex)
+            // Fire-and-forget: trigga n8n utan att vänta på svar.
+            // Ollama kan ta flera minuter — frontendet pollar ändå för resultatet.
+            var payload = new
             {
-                log.Status = "failed";
-                log.ErrorMessage = ex.Message;
-            }
-            finally
+                submissionId = submission.Id,
+                courseId = submission.CourseId,
+                assignmentId = submission.AssignmentId,
+                content = submission.Content,
+                uppgiftsbeskrivning = context.Uppgiftsbeskrivning,
+                bedömningsmall = context.Bedömningsmall
+            };
+            _ = Task.Run(async () =>
             {
-                await _db.SaveChangesAsync();
-            }
+                try
+                {
+                    using var client = _http.CreateClient("ollama"); // 5 min timeout
+                    await client.PostAsJsonAsync("http://localhost:5678/webhook/feedback", payload);
+                }
+                catch
+                {
+                    // Fel loggas inte här — det viktigaste är att webhooken skickades.
+                }
+            });
 
-            return log.Status == "success"
-                ? Ok("Processing started")
-                : StatusCode(502, new { error = "n8n-anropet misslyckades", detail = log.ErrorMessage });
+            return Ok("Processing started");
         }
 
         // 3. Hämta feedbackutkast
@@ -163,7 +165,42 @@ namespace TeacherAid.Api.Controllers
             return Ok(pending);
         }
 
-        // 6. Hämta automationsloggar (läraren kan se historik)
+        // 7. Servera den ursprungliga inlämningsfilen
+        [HttpGet("{id}/file")]
+        public async Task<IActionResult> GetFile(int id)
+        {
+            var submission = await _db.Submissions.FindAsync(id);
+            if (submission?.SourceFileName == null) return NotFound();
+
+            var root = Path.GetFullPath(Path.Combine(_env.ContentRootPath,
+                _config["FolderPaths:Inlamningar"] ?? "../inlamningar"));
+
+            // Försök direkt sökväg först, sök sedan rekursivt (hanterar gamla inlämningar utan AssignmentId)
+            var filePath = Path.Combine(root, submission.CourseId, submission.AssignmentId, submission.SourceFileName);
+            if (!System.IO.File.Exists(filePath))
+            {
+                filePath = Directory
+                    .GetFiles(root, submission.SourceFileName, SearchOption.AllDirectories)
+                    .FirstOrDefault()!;
+            }
+
+            if (filePath == null || !System.IO.File.Exists(filePath))
+                return NotFound("Filen hittades inte på disk");
+
+            var ext = Path.GetExtension(filePath).ToLowerInvariant();
+            var contentType = ext switch
+            {
+                ".pdf"  => "application/pdf",
+                ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                ".txt"  => "text/plain; charset=utf-8",
+                _       => "application/octet-stream"
+            };
+
+            var stream = System.IO.File.OpenRead(filePath);
+            return File(stream, contentType, submission.SourceFileName);
+        }
+
+        // 8. Hämta automationsloggar (läraren kan se historik)
         [HttpGet("logs")]
         public async Task<IActionResult> GetLogs()
         {
