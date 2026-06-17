@@ -66,8 +66,8 @@ cd TeacherAid.Api
 dotnet run
 ```
 
-API:et är tillgängligt på `http://localhost:5000`.  
-Swagger UI: `http://localhost:5000/swagger`
+API:et är tillgängligt på `http://localhost:5010`.  
+Swagger UI: `http://localhost:5010/swagger`
 
 ### 5. Starta frontend (valfritt)
 
@@ -135,5 +135,6 @@ Workflowen tar emot studentdata via webhook, anropar Ollama för feedbackgenerer
 - **Kursmaterial kan inte redigeras i gränssnittet** — det finns inget sätt att uppdatera eller ta bort uppladdade kursdokument via frontend.
 - **Feedback kan inte redigeras direkt på sidan** — läraren kan inte justera AI-feedbacken inline utan måste hantera det utanför systemet.
 - **Genererat kursmaterial kan inte exporteras** — när AI genererat kursmaterial finns inget sätt att spara det direkt som ett dokument. Läraren måste manuellt kopiera innehållet till en extern dokumenthanterare.
-- **En kurs stöds (by design)** — systemet är i nuvarande version avsiktligt begränsat till en enda kurs. Elever kan inte välja kurs eller ställa frågor om annat kursmaterial.
+- **Frontend stöder i dagsläget endast en kurs** — backend hanterar flera kurser via courseId, men frontend har kurs-ID:t förifyllt med `SYS25D`. Elever kan inte välja kurs i gränssnittet.
+- **Elevfrågor är begränsade till 400 tecken** — för att motverka att elever klistrar in hela uppgifter och för att minska risken för prompt injection. Validering sker i både frontend och backend.
 - **Elever loggar inte in (by design)** — elever ställer anonyma frågor utan autentisering, eftersom funktionen är begränsad till generella kursfrågor. Allt som kräver inloggning är förbehållet läraren.
