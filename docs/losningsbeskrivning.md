@@ -71,7 +71,7 @@ Läraren kan sedan granska och godkänna utkastet via gränssnittet.
 
 **Anonyma elevfrågor utan inloggning** — Elevernas frågor är generella kursfrågor och ingen personlig data kopplas till dem. Det finns därmed inget behov av autentisering, och att slippa inloggning sänker tröskel för eleverna att använda tjänsten.
 
-**Vad som valdes bort** — Två funktioner identifierades som viktiga men lämnades utanför scope i denna version: ordentlig bedömningsfeedback kopplad till kurskriterier (där AI specificerar hur varje elev uppnått respektive bedömningskriterium), samt möjlighet för läraren att ladda ner AI-genererat kursmaterial direkt som ett dokument.
+**Vad som valdes bort** — En funktion identifierades som viktig men lämnades utanför scope i denna version: ordentlig bedömningsfeedback kopplad till kurskriterier (där AI specificerar hur varje elev uppnått respektive bedömningskriterium).
 
 ---
 
@@ -80,7 +80,6 @@ Läraren kan sedan granska och godkänna utkastet via gränssnittet.
 - **Feedback visas inte på inlämningen** — AI-genererat feedbackutkast dyker inte upp direkt under inlämningen. Läraren måste manuellt kopiera över feedbacken.
 - **Kursmaterial kan inte redigeras i gränssnittet** — det finns inget sätt att uppdatera eller ta bort uppladdade kursdokument via frontend.
 - **Feedback kan inte redigeras direkt på sidan** — läraren kan inte justera AI-feedbacken inline.
-- **Genererat kursmaterial kan inte exporteras** — läraren måste kopiera innehållet manuellt till en extern dokumenthanterare.
 - **En kurs stöds (by design)** — systemet är avsiktligt begränsat till en enda kurs i nuvarande version.
 - **Elever loggar inte in (by design)** — elever ställer anonyma frågor utan autentisering.
 - **Chunking delar inte på meningar** — `ChunkText` splittar enbart på radbrytningar och kan producera chunks som överskrider maxstorleken.

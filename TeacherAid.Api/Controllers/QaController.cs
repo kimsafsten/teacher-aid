@@ -12,12 +12,17 @@ public class QaController : ControllerBase
     private readonly RagService _rag;
     private readonly AppDbContext _db;
     private readonly ILLMService _llm;
+    private readonly IConfiguration _config;
+    private readonly IWebHostEnvironment _env;
 
-    public QaController(RagService rag, AppDbContext db, ILLMService llm)
+    public QaController(RagService rag, AppDbContext db, ILLMService llm,
+        IConfiguration config, IWebHostEnvironment env)
     {
         _rag = rag;
         _db = db;
         _llm = llm;
+        _config = config;
+        _env = env;
     }
 
     [Authorize]
@@ -63,10 +68,99 @@ public class QaController : ControllerBase
             """;
 
         var result = await _llm.GenerateAsync(prompt);
-        return Ok(new { content = result });
+        var savedAs = await SaveToFileAsync(dto.CourseId, dto.Instruction, result);
+        return Ok(new { content = result, savedAs });
+    }
+
+    [Authorize]
+    [HttpGet("generated")]
+    public IActionResult ListGenerated()
+    {
+        var folder = ResolveGeneratedFolder();
+        if (!Directory.Exists(folder))
+            return Ok(new { files = Array.Empty<object>() });
+
+        var files = Directory.GetFiles(folder, "*.md")
+            .Select(f => new
+            {
+                fileName = Path.GetFileName(f),
+                generatedAt = System.IO.File.GetLastWriteTime(f).ToString("yyyy-MM-dd HH:mm")
+            })
+            .OrderByDescending(f => f.generatedAt)
+            .ToList();
+
+        return Ok(new { files });
+    }
+
+    [Authorize]
+    [HttpGet("generated/{fileName}")]
+    public IActionResult GetGenerated(string fileName)
+    {
+        if (fileName.Contains("..") || fileName.Contains('/') || fileName.Contains('\\'))
+            return BadRequest("Ogiltigt filnamn.");
+
+        var folder = ResolveGeneratedFolder();
+        var filePath = Path.Combine(folder, fileName);
+
+        if (!System.IO.File.Exists(filePath))
+            return NotFound();
+
+        var content = System.IO.File.ReadAllText(filePath);
+        return Ok(new { content });
+    }
+
+    [Authorize]
+    [HttpPut("generated/{fileName}")]
+    public async Task<IActionResult> SaveGenerated(string fileName, [FromBody] SaveGeneratedDto dto)
+    {
+        if (fileName.Contains("..") || fileName.Contains('/') || fileName.Contains('\\'))
+            return BadRequest("Ogiltigt filnamn.");
+
+        var folder = ResolveGeneratedFolder();
+        var filePath = Path.Combine(folder, fileName);
+
+        if (!System.IO.File.Exists(filePath))
+            return NotFound();
+
+        await System.IO.File.WriteAllTextAsync(filePath, dto.Content);
+        return Ok();
+    }
+
+    private string ResolveGeneratedFolder()
+    {
+        var basePath = _config["FolderPaths:Genererat"] ?? "../genererat";
+        return Path.IsPathRooted(basePath)
+            ? basePath
+            : Path.Combine(_env.ContentRootPath, basePath);
+    }
+
+    private async Task<string> SaveToFileAsync(string courseId, string instruction, string content)
+    {
+        var folder = ResolveGeneratedFolder();
+        Directory.CreateDirectory(folder);
+
+        var timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+        var fileName = $"{courseId}_{timestamp}.md";
+        var filePath = Path.Combine(folder, fileName);
+
+        var markdown = $"""
+            # Genererat kursmaterial
+
+            **Kurs:** {courseId}
+            **Instruktion:** {instruction}
+            **Genererat:** {DateTime.Now:yyyy-MM-dd HH:mm}
+
+            ---
+
+            {content}
+            """;
+
+        await System.IO.File.WriteAllTextAsync(filePath, markdown);
+        return fileName;
     }
 }
 
 public record UploadDocumentDto(string CourseId, string FileName, string Content);
 public record AskQuestionDto(string CourseId, string Question);
 public record GenerateMaterialDto(string CourseId, string Instruction);
+public record SaveGeneratedDto(string Content);
