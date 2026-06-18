@@ -34,7 +34,7 @@ export default function MaterialGenerator() {
       const { data } = await axios.get(`${API}/qa/generated`, { headers })
       setHistory(data.files ?? [])
     } catch {
-      // tyst fel – historik är inte kritisk
+      // Silent failure — history is non-critical.
     }
   }
 
@@ -42,7 +42,7 @@ export default function MaterialGenerator() {
     setSyncing(true)
     setSyncResult(null)
     try {
-      const { data } = await axios.post(`${API}/sync/kursmaterial`, {}, { headers })
+      const { data } = await axios.post(`${API}/sync/course-material`, {}, { headers })
       setSyncResult(data)
     } catch (err) {
       setSyncResult({ errors: [err.message], processed: [] })
@@ -231,7 +231,7 @@ export default function MaterialGenerator() {
         )}
       </div>
 
-      {/* Historik */}
+      {/* History */}
       {history.length > 0 && (
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <h2 className="text-sm font-semibold text-gray-900 mb-3">Tidigare genererat</h2>

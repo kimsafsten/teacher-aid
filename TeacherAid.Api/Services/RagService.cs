@@ -75,24 +75,24 @@ public class RagService
     }
 
     /// <summary>
-    /// Hämtar uppgiftsbeskrivning och bedömningsmall för en specifik uppgift,
-    /// som kontext till feedbackgenerering.
+    /// Loads the assignment description and grading rubric for a specific assignment
+    /// to use as context when generating feedback.
     /// </summary>
     public async Task<AssignmentContext> GetAssignmentContext(string courseId, string assignmentId)
     {
         var docs = await _db.CourseDocuments
             .Where(d => d.CourseId == courseId && d.AssignmentId == assignmentId)
-            .Where(d => d.DocumentType == DocumentType.Uppgiftsbeskrivning
-                     || d.DocumentType == DocumentType.Bedömningsmall)
+            .Where(d => d.DocumentType == DocumentType.AssignmentDescription
+                     || d.DocumentType == DocumentType.GradingRubric)
             .ToListAsync();
 
         return new AssignmentContext
         {
-            Uppgiftsbeskrivning = docs
-                .FirstOrDefault(d => d.DocumentType == DocumentType.Uppgiftsbeskrivning)
+            AssignmentDescription = docs
+                .FirstOrDefault(d => d.DocumentType == DocumentType.AssignmentDescription)
                 ?.Content ?? "",
-            Bedömningsmall = docs
-                .FirstOrDefault(d => d.DocumentType == DocumentType.Bedömningsmall)
+            GradingRubric = docs
+                .FirstOrDefault(d => d.DocumentType == DocumentType.GradingRubric)
                 ?.Content ?? ""
         };
     }
@@ -143,7 +143,7 @@ public class RagService
 
 public class AssignmentContext
 {
-    public string Uppgiftsbeskrivning { get; set; } = "";
-    public string Bedömningsmall { get; set; } = "";
-    public bool HasContext => !string.IsNullOrEmpty(Uppgiftsbeskrivning) || !string.IsNullOrEmpty(Bedömningsmall);
+    public string AssignmentDescription { get; set; } = "";
+    public string GradingRubric { get; set; } = "";
+    public bool HasContext => !string.IsNullOrEmpty(AssignmentDescription) || !string.IsNullOrEmpty(GradingRubric);
 }

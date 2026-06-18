@@ -5,12 +5,12 @@ import SyncPanel from '../components/SyncPanel'
 import MaterialGenerator from '../components/MaterialGenerator'
 
 const tabs = [
-  { id: 'inlamningar', label: 'Inlämningar' },
+  { id: 'submissions', label: 'Inlämningar' },
   { id: 'material',    label: 'Kursmaterial' },
 ]
 
 export default function TeacherPage() {
-  const [view, setView] = useState('inlamningar')
+  const [view, setView] = useState('submissions')
   const { logout } = useAuth()
   const navigate = useNavigate()
 
@@ -71,7 +71,7 @@ export default function TeacherPage() {
 
       {/* Content */}
       <main className="max-w-2xl mx-auto px-4 py-6">
-        <div className={view === 'inlamningar' ? '' : 'hidden'}><SyncPanel /></div>
+        <div className={view === 'submissions' ? '' : 'hidden'}><SyncPanel /></div>
         <div className={view === 'material' ? '' : 'hidden'}><MaterialGenerator /></div>
       </main>
     </div>

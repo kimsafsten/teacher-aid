@@ -14,7 +14,7 @@ public static class SubmissionFileNameParser
     /// <returns>
     /// A tuple where <c>studentName</c> is "Firstname Lastname" (or just the first segment
     /// if fewer than two segments exist) and <c>courseId</c> is the third underscore-delimited
-    /// segment, or "okänd" if fewer than three segments exist.
+    /// segment, or the user-facing fallback "okänd" if fewer than three segments exist.
     /// </returns>
     public static (string studentName, string courseId) Parse(string fileName)
     {

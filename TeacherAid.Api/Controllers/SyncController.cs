@@ -15,23 +15,23 @@ public class SyncController : ControllerBase
     }
 
     /// <summary>
-    /// Skannar kursmaterial-mappen och indexerar nya dokument för RAG.
+    /// Scans the course-material folder and indexes new documents for RAG.
     /// </summary>
-    [HttpPost("kursmaterial")]
-    public async Task<IActionResult> SyncKursmaterial()
+    [HttpPost("course-material")]
+    public async Task<IActionResult> SyncCourseMaterial()
     {
-        var result = await _sync.SyncKursmaterial();
+        var result = await _sync.SyncCourseMaterial();
         return Ok(result);
     }
 
     /// <summary>
-    /// Skannar inlämnings-mappen, pseudonymiserar och skapar Submission-poster.
-    /// Filnamnsformat: Förnamn_Efternamn_KursID.pdf/.docx (uppgiftsnamn är valfritt, t.ex. Förnamn_Efternamn_KursID_Uppgift.pdf)
+    /// Scans the submissions folder, pseudonymizes content, and creates Submission records.
+    /// File name format: Firstname_Lastname_CourseId.pdf/.docx (assignment name optional, e.g. Firstname_Lastname_CourseId_Assignment.pdf).
     /// </summary>
-    [HttpPost("inlamningar")]
-    public async Task<IActionResult> SyncInlamningar()
+    [HttpPost("submissions")]
+    public async Task<IActionResult> SyncSubmissions()
     {
-        var result = await _sync.SyncInlamningar();
+        var result = await _sync.SyncSubmissions();
         return Ok(result);
     }
 }

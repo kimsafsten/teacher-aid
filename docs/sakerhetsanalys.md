@@ -59,7 +59,7 @@ De tre allvarligaste kvarvarande riskerna efter Tier 1.
 |---|---|
 | **Vad** | llama3 (7B) kan generera sakligt felaktig feedback som läraren godkänner utan granskning. |
 | **Attackväg** | Inlämning → n8n → Ollama → felaktigt utkast → läraren klickar "Godkänn och spara" → eleven får fel återkoppling. |
-| **Befintlig kontroll** | Human-in-the-loop, AI-utkast i UI, `AutomationLog`, uppgiftsbeskrivning och bedömningsmall i prompten. |
+| **Befintlig kontroll** | Human-in-the-loop, AI-utkast i UI, `AutomationLog`, `assignmentDescription` och `gradingRubric` i webhook-payloaden (visas som uppgiftsbeskrivning och bedömningsmall i prompten). |
 | **Åtgärd** | UI-varning *"Granska alltid — AI kan ha fel"*. Validera RAG-index. Flagga utkast som avviker från förväntat format. |
 | **Integritet** | Felaktig feedback kan vara orättvis mot eleven. AI sparar tid på utkast men ersätter inte lärarens professionella bedömning. |
 
@@ -113,7 +113,7 @@ De tre allvarligaste kvarvarande riskerna efter Tier 1.
 **Befintlig kontroll:**
 - All feedback presenteras som "AI-utkast" — läraren måste aktivt godkänna.
 - `AutomationLog` loggar varje AI-anrop.
-- Uppgiftsbeskrivning och bedömningsmall skickas med i prompten.
+- `assignmentDescription` och `gradingRubric` skickas med i n8n-webhook-payloaden och inkluderas i prompten på svenska.
 
 **Åtgärd:** UI-varning om AI-fel. Utöka RAG-indexet. Validera output-format.
 
@@ -139,7 +139,7 @@ De tre allvarligaste kvarvarande riskerna efter Tier 1.
 
 **Beskrivning:** Studentinlämningar innehåller personuppgifter som kan läcka till AI-modellen eller obehöriga.
 
-**Var uppstår risken i TeacherAid:** `FolderSyncService` parsear studentnamn ur filnamn. `Submission.StudentName` lagras i databasen.
+**Var uppstår risken i TeacherAid:** `FolderSyncService.SyncSubmissions()` parsear studentnamnet ur filnamnet. `Submission.StudentName` lagras i databasen.
 
 **Befintlig kontroll (efter Tier 1):**
 - `TextPseudonymizer` ersätter namn med `[Student]` i material som indexeras och skickas till AI.
@@ -185,7 +185,7 @@ AI genererar enbart utkast; läraren måste explicit godkänna via `PUT /api/sub
 
 ### LLM04 — Data and Model Poisoning [Score: 3 | Nivå: LÅG] — Icke relevant
 
-Endast inloggad lärare (JWT) kan synka kursmaterial. En organisation med en läraranvändare har minimalt hot-surface.
+Endast inloggad lärare (JWT) kan synka kursmaterial via `POST /api/sync/course-material` (`SyncCourseMaterial()`). En organisation med en läraranvändare har minimalt hot-surface.
 
 ---
 
