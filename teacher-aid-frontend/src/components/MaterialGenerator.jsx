@@ -34,7 +34,7 @@ export default function MaterialGenerator() {
       const { data } = await axios.get(`${API}/qa/generated`, { headers })
       setHistory(data.files ?? [])
     } catch {
-      // Silent failure — history is non-critical.
+      // History panel is optional; ignore load errors.
     }
   }
 

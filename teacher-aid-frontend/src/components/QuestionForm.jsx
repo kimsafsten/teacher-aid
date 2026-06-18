@@ -15,6 +15,7 @@ export default function QuestionForm() {
     setAnswer(null)
     try {
       const { data } = await axios.post(`${API}/qa/ask`, { courseId, question })
+      // Strip optional "S:" answer prefix from the LLM response.
       setAnswer(data.answer.replace(/^S:\s*/i, ''))
     } catch (err) {
       setAnswer('Något gick fel: ' + err.message)
