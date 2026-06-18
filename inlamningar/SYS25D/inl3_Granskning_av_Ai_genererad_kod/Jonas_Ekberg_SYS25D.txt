@@ -1,0 +1,34 @@
+# Kortreflektion – Granskning av AI-genererad kod
+
+**Student:** Jonas Ekberg  
+**Datum:** 2026-06-20  
+
+---
+
+## Del 1 – Identifierade brister
+
+**Brist 1 – Avsaknad av Luhn-validering (säkerhetsrisk):**  
+Funktionen saknar implementation av Luhn-algoritmen, vilket är en fundamental del av personnummerstandarden (Skatteverkets SKV 704). Utan den godkänns valfri tiosiffrig sträng. I ett system som kopplar personnummer till känsliga uppgifter – exempelvis hälsojournaler eller bankkonton – innebär detta att en angripare kan fabrikat ett slumpmässigt nummer och passera inloggning eller identitetsverifiering. Det är en direkt OWASP A07:2021-brist (Identification and Authentication Failures).
+
+**Brist 2 – Ingen datumvalidering:**  
+ÅÅMMDD-delen kontrolleras inte mot kalenderlogik. `130199` (dag 99) och `991399` (månad 13) godkänns båda. I ett system som senare parsar datumet med `datetime.strptime` ger det ett ohanterat undantag i produktionsmiljön.
+
+**Brist 3 – Saknat stöd för 12-siffrigt format och tyst felpropagering:**  
+Format ÅÅÅÅMMDD-XXXX, som används av bl.a. Skatteverkets API:er och SITHS-kort, returnerar `False` utan information. Det gör det omöjligt för anropande kod att skilja "ogiltigt personnummer" från "okänt format", vilket försvårar felsökning och leder till missvisande felmeddelanden mot slutanvändaren.
+
+## Del 2 – Föreslagen förbättring
+
+Jag skulle strukturera om funktionen i tydliga valideringssteg:
+
+1. **Inmatningsvalidering:** Kontrollera typ och att strängen matchar `^\d{6,8}[-+]?\d{4}$` med regex.
+2. **Normalisering:** Konvertera 12-siffrigt format till 10-siffrigt; hantera sekelseparatorn (`-` för födda efter 1900, `+` för 100+).
+3. **Datumkontroll:** Parsa med `datetime.strptime` och fånga `ValueError`.
+4. **Luhn-kontroll:** Implementera algoritmen (multiplicera varannan siffra med 2, summera tvåsiffriga resultat, kontrollera att totalen är delbar med 10).
+
+Varje steg bör höja ett specifikt undantag (`ValueError` med tydligt meddelande) snarare än att returnera `False`, så att anropande kod kan ge meningsfull feedback.
+
+## Del 3 – Reflektion
+
+Det här exemplet synliggör ett strukturellt problem med hur AI-verktyg hanterar domänspecifik validering: modellen optimerar för att koden ser korrekt ut och klarar uppenbara fall, men saknar kontext om branschstandarder om man inte explicit ber om dem. 
+
+I mitt arbetsflöde med Cursor under kursens projekt har jag börjat inkludera referensdokument (t.ex. SKV 704 i systemprompten) och alltid skriva tester *innan* jag genererar implementationen – test-driven prompting. Det tvingar AI:n att producera kod som klarar kantfall, och om den inte gör det syns det direkt i testutfallet. AI:n är ett kraftfullt verktyg, men ansvaret för korrekthet och säkerhet ligger alltid hos utvecklaren.

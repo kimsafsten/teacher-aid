@@ -8,7 +8,7 @@ OWASP LLM Top 10 är en referenslista över de tio vanligaste säkerhetsriskerna
 
 ## Genomförda åtgärder (Tier 1)
 
-Följande åtgärder implementerades efter den initiala säkerhetsanalysen (övning 1):
+Följande åtgärder implementerades efter den initiala säkerhetsanalysen:
 
 | # | Åtgärd | Fil / komponent | Effekt |
 |---|--------|-----------------|--------|
@@ -49,7 +49,7 @@ Varje risk bedöms på en femgradig skala för både sannolikhet och konsekvens.
 
 ---
 
-## Fördjupade fynd (övning 2)
+## Fördjupade fynd
 
 De tre allvarligaste kvarvarande riskerna efter Tier 1.
 
@@ -126,7 +126,7 @@ De tre allvarligaste kvarvarande riskerna efter Tier 1.
 **Beskrivning:** AI-genererad output med kontrolltecken, null-bytes eller extremt långa strängar kan orsaka problem i databas, UI eller automationsflöden.
 
 **Var uppstår risken i TeacherAid:**
-- **API-vägen:** `OllamaLLMService.GenerateAsync()` — sanitisering **implementerad** (`Sanitize()` tar bort kontrolltecken, null-bytes, begränsar till 8 000 tecken).
+- **API-vägen:** `OllamaLLMService.GenerateAsync()` — sanitisering **implementerad** (`Sanitize()` tar bort kontrolltecken, null-bytes, begränsar till 8 000 tecken). System-prompt instruerar svenska svar med oförändrade engelska facktermer där det är branschstandard.
 - **n8n-vägen:** Feedback sparas direkt från Ollama-svar till `FeedbackDrafts` **utan** sanitisering.
 
 **Åtgärd (Tier 2):** Code-nod i n8n med samma logik som `Sanitize()`, eller flytta feedbackgenerering till API.
@@ -217,7 +217,7 @@ Ollama körs lokalt utan token-kostnad. Resursförbrukning begränsas av servern
 
 ### Oskyddad n8n-webhook [KVARSTÅR — Tier 2]
 
-**Problem:** `POST http://localhost:5678/webhook/feedback` saknar autentisering.
+**Problem:** `POST http://127.0.0.1:5678/webhook/feedback` saknar autentisering.
 
 **Planerad åtgärd:** Delad hemlighet i `X-Webhook-Secret`-header, valideras i n8n.
 

@@ -106,7 +106,7 @@ public class RagService
             Du är en hjälpsam kursassistent för läraren Anna Lindqvist på Yrkesakademin.
             Svara på studentens fråga baserat ENDAST på kursmaterialet nedan.
             Om svaret inte finns i materialet, säg att du inte kan svara på frågan och uppmanar studenten att ta kontakt med läraren för att få svar.
-            Svara på svenska och håll svaret kort och tydligt.
+            Svara på svenska och håll svaret kort och tydligt. Behåll etablerade facktermer på engelska när det är branschstandard (t.ex. structure as code).
             Stava alltid korrekt och använd aldrig stora bokstäver mitt i meningar eller ord.
 
             Kursmaterial:

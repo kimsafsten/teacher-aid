@@ -1,0 +1,47 @@
+# Inlämning 3 – Granskning av AI-genererad kod
+
+**Kurs:** SYS25D – Systemutveckling och testning med AI-verktyg  
+**Typ:** Individuell skriftlig reflektion  
+**Omfattning:** Max 500 ord  
+**Betygsskala:** IG / G / VG  
+**Deadline:** 2026-06-25
+
+---
+
+## Bakgrund
+
+AI-verktyg som GitHub Copilot och Cursor kan generera kod snabbt, men koden är inte alltid korrekt, säker eller underhållbar. Som systemutvecklare är det din uppgift att kritiskt granska det AI:n producerar – inte bara acceptera det.
+
+---
+
+## Uppgift
+
+Du har fått i uppdrag att implementera en enkel funktion som validerar ett personnummer (formatet ÅÅMMDD-XXXX). Du ber ett AI-verktyg generera funktionen åt dig och får följande kod:
+
+```python
+def validate_personnummer(pnr: str) -> bool:
+    # Remove dash
+    pnr = pnr.replace("-", "")
+    if len(pnr) != 10:
+        return False
+    return pnr.isdigit()
+```
+
+**Besvara följande i din inlämning (max 500 ord totalt):**
+
+1. **Identifiera minst två konkreta brister** i den AI-genererade funktionen ovan. Förklara vad som kan gå fel och i vilket scenario.
+
+2. **Föreslå en förbättrad version** – du behöver inte skriva fullständig kod, men beskriv tydligt vad som ska läggas till eller ändras och varför.
+
+3. **Kort reflektion:** Vad lär det här exemplet dig om hur du bör arbeta med AI-genererad kod i ett verkligt projekt?
+
+---
+
+## Inlämning
+
+Lämna in som en PDF eller Word-fil via lärplattformen.  
+Döp filen till: `Kortreflektion_[Ditt namn].pdf`
+
+---
+
+*Lycka till!*

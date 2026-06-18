@@ -1,0 +1,14 @@
+# Kortreflektion – Granskning av AI-genererad kod
+
+**Student:** Erik Holm  
+**Datum:** 2026-06-24  
+
+---
+
+Jag tittade på koden och den ser ganska enkel ut. Den kollar om strängen är 10 tecken och om alla är siffror. Det kan vara lite problem med den.
+
+En sak som kan vara fel är att den kanske inte fungerar i alla fall. Om man skriver in något konstigt kanske den inte funkar. Det är svårt att säga exakt vad.
+
+En annan sak är att koden inte är så lång, kanske behöver den vara längre för att göra mer saker.
+
+Jag tänker att AI kan vara bra men man ska kolla koden lite. Det är bra att testa den. I projektet kan man använda AI för att spara tid.
