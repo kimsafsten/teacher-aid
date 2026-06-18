@@ -26,7 +26,7 @@ public class SubmissionFileNameParserTests
     {
         var (name, courseId) = SubmissionFileNameParser.Parse("Anna_Svensson.pdf");
         Assert.Equal("Anna Svensson", name);
-        Assert.Equal("okänd", courseId);
+        Assert.Equal(SubmissionFileNameParser.UnknownCourseId, courseId);
     }
 
     [Fact]
@@ -34,7 +34,7 @@ public class SubmissionFileNameParserTests
     {
         var (name, courseId) = SubmissionFileNameParser.Parse("Anna.pdf");
         Assert.Equal("Anna", name);
-        Assert.Equal("okänd", courseId);
+        Assert.Equal(SubmissionFileNameParser.UnknownCourseId, courseId);
     }
 
     [Fact]

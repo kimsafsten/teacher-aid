@@ -66,7 +66,7 @@ public class FolderSyncService
             try
             {
                 var text = _extractor.ExtractText(file);
-                var courseId = SubmissionFileNameParser.ParseCourseId(fileName) ?? "okänd";
+                var courseId = SubmissionFileNameParser.ParseCourseId(fileName) ?? SubmissionFileNameParser.UnknownCourseId;
                 await _rag.IndexDocument(courseId, "", DocumentType.CourseMaterial, fileName, text, fileName);
                 result.Processed.Add(fileName);
             }
@@ -79,6 +79,10 @@ public class FolderSyncService
         return result;
     }
 
+    /// <summary>
+    /// Imports new files from <c>inlamningar/{courseId}/{assignmentId}/</c>.
+    /// Requires assignment description and grading rubric files before student submissions are processed.
+    /// </summary>
     public async Task<SyncResult> SyncSubmissions()
     {
         var rootFolder = ResolvePath(_config["FolderPaths:Submissions"] ?? "../inlamningar");
@@ -199,12 +203,10 @@ public class FolderSyncService
             }
             await _db.SaveChangesAsync();
 
-            var n8nUrl = _config["N8n:WebhookUrl"] ?? "http://localhost:5678/webhook/feedback";
-
             foreach (var submission in newSubmissions)
             {
                 var context = await _rag.GetAssignmentContext(submission.CourseId, submission.AssignmentId);
-                var payload = new
+                FeedbackWebhookTrigger.Send(_http, _config, new
                 {
                     submissionId = submission.Id,
                     courseId = submission.CourseId,
@@ -212,16 +214,6 @@ public class FolderSyncService
                     content = submission.Content,
                     assignmentDescription = context.AssignmentDescription,
                     gradingRubric = context.GradingRubric
-                };
-                // Fire-and-forget: webhook errors are not surfaced to the caller.
-                _ = Task.Run(async () =>
-                {
-                    try
-                    {
-                        using var client = _http.CreateClient("ollama");
-                        await client.PostAsJsonAsync(n8nUrl, payload);
-                    }
-                    catch { }
                 });
             }
         }
@@ -229,12 +221,8 @@ public class FolderSyncService
         return result;
     }
 
-    private string ResolvePath(string relativePath)
-    {
-        // ContentRootPath points to the project directory (where .csproj and appsettings.json live),
-        // regardless of whether the app runs via dotnet run or from bin/Debug.
-        return Path.GetFullPath(Path.Combine(_env.ContentRootPath, relativePath));
-    }
+    private string ResolvePath(string relativePath) =>
+        Path.GetFullPath(Path.Combine(_env.ContentRootPath, relativePath));
 }
 
 public class SyncResult
