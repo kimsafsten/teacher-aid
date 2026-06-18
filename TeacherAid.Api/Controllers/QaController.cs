@@ -25,6 +25,9 @@ public class QaController : ControllerBase
         _env = env;
     }
 
+    /// <summary>
+    /// Indexes a course document for RAG-based question answering.
+    /// </summary>
     [Authorize]
     [HttpPost("documents")]
     public async Task<IActionResult> UploadDocument([FromBody] UploadDocumentDto dto)
@@ -33,6 +36,9 @@ public class QaController : ControllerBase
         return Ok("Dokument indexerat");
     }
 
+    /// <summary>
+    /// Answers a student question using indexed course material. Anonymous; limited to 400 characters.
+    /// </summary>
     [HttpPost("ask")]
     public async Task<IActionResult> Ask([FromBody] AskQuestionDto dto)
     {
@@ -43,6 +49,9 @@ public class QaController : ControllerBase
         return Ok(new { answer });
     }
 
+    /// <summary>
+    /// Generates new course material from an instruction and existing indexed content; saves result as markdown.
+    /// </summary>
     [Authorize]
     [HttpPost("generate-material")]
     public async Task<IActionResult> GenerateMaterial([FromBody] GenerateMaterialDto dto)
@@ -57,14 +66,18 @@ public class QaController : ControllerBase
             : "Inget befintligt kursmaterial finns uppladdat.";
 
         var prompt = $"""
+            VIKTIGT: Skriv hela svaret på svenska. Behåll etablerade facktermer och begrepp på engelska när det är branschstandard (t.ex. structure as code) — översätt inte sådana termer.
+
             Du är en erfaren pedagogisk assistent för läraren Anna Lindqvist på Yrkesakademin.
             Baserat på befintligt kursmaterial nedan, generera nytt material enligt instruktionen.
-            Svara på svenska. Formatera svaret tydligt med rubriker och punktlistor där det passar.
+            Formatera svaret tydligt med rubriker och punktlistor där det passar.
 
             Befintligt kursmaterial:
             {context}
 
             Instruktion: {dto.Instruction}
+
+            Kom ihåg: Svara på svenska, men lämna etablerade engelska facktermer oförändrade.
             """;
 
         var result = await _llm.GenerateAsync(prompt);
@@ -72,6 +85,9 @@ public class QaController : ControllerBase
         return Ok(new { content = result, savedAs });
     }
 
+    /// <summary>
+    /// Lists previously generated material files in the generated folder.
+    /// </summary>
     [Authorize]
     [HttpGet("generated")]
     public IActionResult ListGenerated()
@@ -92,6 +108,9 @@ public class QaController : ControllerBase
         return Ok(new { files });
     }
 
+    /// <summary>
+    /// Returns the content of a generated material file.
+    /// </summary>
     [Authorize]
     [HttpGet("generated/{fileName}")]
     public IActionResult GetGenerated(string fileName)
@@ -109,6 +128,9 @@ public class QaController : ControllerBase
         return Ok(new { content });
     }
 
+    /// <summary>
+    /// Overwrites a generated material file with edited content.
+    /// </summary>
     [Authorize]
     [HttpPut("generated/{fileName}")]
     public async Task<IActionResult> SaveGenerated(string fileName, [FromBody] SaveGeneratedDto dto)

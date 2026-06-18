@@ -1,0 +1,29 @@
+# Kortreflektion – Granskning av AI-genererad kod
+
+**Student:** Lena Bergqvist  
+**Datum:** 2026-06-21  
+
+---
+
+## Del 1 – Identifierade brister
+
+**Brist 1 – Saknad Luhn-validering:**  
+Den allvarligaste bristen är att checksiffran aldrig kontrolleras. Luhn-algoritmen är en grundläggande del av personnummerstandarden i Sverige (SKV 704). Utan den accepteras alla tiosiffriga talsträngar som giltiga. I ett affärssystem som använder personnummer för identifiering innebär detta en direkt säkerhetsrisk: en angripare kan gissa ett godtyckligt nummer och passera valideringen.
+
+**Brist 2 – Inget stöd för 12-siffrigt format:**  
+Många moderna system och API:er använder formatet ÅÅÅÅMMDD-XXXX (12 siffror). Funktionen stöder bara det 10-siffriga formatet och returnerar `False` för allt annat utan att kommunicera varför. Det gör felhanteringen tyst och svår att debugga.
+
+**Brist 3 – Ingen typkontroll:**  
+Om `pnr` är `None` eller ett heltal kraschar funktionen på `.replace()`-anropet med `AttributeError`. I en produktionsmiljö kan det orsaka oväntade fel som är svåra att spåra.
+
+## Del 2 – Föreslagen förbättring
+
+Funktionen bör byggas om i tre lager:
+
+1. **Typkontroll:** Returnera `False` (eller raise `TypeError`) om indata inte är en sträng.
+2. **Formatnormalisering och datumkontroll:** Acceptera både 10- och 12-siffrigt format, normalisera till 10 siffror och validera datumdelen med `datetime.strptime`.
+3. **Luhn-kontroll:** Implementera algoritmen från SKV 704 och kontrollera att checksiffran stämmer.
+
+## Del 3 – Reflektion
+
+Exemplet illustrerar ett mönster jag sett i kursens projekt: AI vet om Luhn-algoritmen men väljer en minimalistisk implementation om prompten inte är tillräckligt specifik. Det viktigaste lärdomen är att prompten måste spegla domänkraven – "validera ett personnummer" är inte tillräckligt, man behöver skriva "validera ett svenskt personnummer enligt SKV 704 inklusive Luhn-checksiffra och datumkontroll". AI:n är inte sämre än sin kontext.

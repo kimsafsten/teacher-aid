@@ -1,0 +1,65 @@
+# Bedömingsmall – Inlämning 3: Granskning av AI-genererad kod
+
+**Kurs:** SYS25D – Systemutveckling och testning med AI-verktyg  
+**Kopplat lärandemål:** LM4, LM5  
+**Betygsskala:** IG / G / VG  
+
+---
+
+## Förväntade brister i koden (lärarfacit)
+
+Exempel på brister studenten kan identifiera (godkänn liknande resonemang):
+
+- **Ingen Luhn-algoritm (checksiffra):** Funktionen kontrollerar inte att siffrorna bildar ett giltigt personnummer enligt Luhn-algoritmen. Ett tal som `1234567890` passerar felaktigt.
+- **Ingen datumvalidering:** `999999` skulle godkännas som datum trots att det inte är giltigt.
+- **Hanterar inte 12-siffrigt format:** Många system använder ÅÅÅÅMMDD-XXXX (12 siffror). Funktionen avvisar dessa utan förklaring.
+- **Inga kantfall:** Tomt strängen, `None`, eller icke-numeriska tecken hanteras inte robust (t.ex. kraschar om indata inte är str).
+
+---
+
+## Bedömningskriterier
+
+### Del 1 – Identifiering av brister
+
+| Betyg | Beskrivning |
+|-------|-------------|
+| **IG** | Inga brister identifieras, eller endast ytliga kommentarer utan förklaring av konsekvens. |
+| **G** | Minst två konkreta brister identifieras. Studenten förklarar vad som kan gå fel, men analysen är kortfattad. |
+| **VG** | Minst två välmotiverade brister med tydlig beskrivning av felscenario och potentiell konsekvens (t.ex. säkerhetsrisk, felaktig affärslogik). |
+
+---
+
+### Del 2 – Föreslagen förbättring
+
+| Betyg | Beskrivning |
+|-------|-------------|
+| **IG** | Ingen förbättring föreslås, eller förslaget är vagt och saknar koppling till identifierade brister. |
+| **G** | Studenten beskriver konkret vad som behöver ändras och kopplar det till minst en av bristerna. Förslaget är rimligt men kan sakna detaljer. |
+| **VG** | Förslaget täcker samtliga identifierade brister och motiveras tydligt. Studenten visar förståelse för varför varje åtgärd är nödvändig. | 
+
+---
+
+### Del 3 – Reflektion om AI-arbetsflöde
+
+| Betyg | Beskrivning |
+|-------|-------------|
+| **IG** | Ingen reflektion, eller en generisk kommentar utan koppling till uppgiften. |
+| **G** | Studenten drar en relevant slutsats om hur AI-genererad kod bör granskas. Reflektionen är kortfattad men relevant. |
+| **VG** | Studenten kopplar reflektionen till ett konkret arbetsflöde eller princip (t.ex. "AI som förslag, inte facit", kodgranskning, tester). Visar mognad i synen på AI som verktyg. | 
+
+---
+
+
+
+## Lärarkommentar (fylls i vid rättning)
+
+**Student:**  
+**Datum:**  
+**Betyg del 1:** ___    
+**Betyg del 2:** ___  
+**Betyg del 3:** ___      
+**Betyg:** ___  
+
+**Övriga kommentarer:**  
+
+> _[Skriv här]_

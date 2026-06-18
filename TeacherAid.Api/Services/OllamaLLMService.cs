@@ -5,7 +5,8 @@ namespace TeacherAid.Api.Services;
 public class OllamaLLMService : ILLMService
 {
     private readonly IHttpClientFactory _http;
-    private const string OllamaUrl = "http://localhost:11434";
+    // Use 127.0.0.1 — "localhost" resolves to ::1 on Windows, which Docker port mapping does not serve.
+    private const string OllamaUrl = "http://127.0.0.1:11434";
     private const int MaxResponseLength = 8000;
 
     public OllamaLLMService(IHttpClientFactory http)
@@ -38,6 +39,7 @@ public class OllamaLLMService : ILLMService
         {
             model = "llama3",
             prompt,
+            system = "Du svarar alltid på svenska. Behåll etablerade facktermer och begrepp på engelska när det är branschstandard (t.ex. structure as code) — översätt inte sådana termer.",
             stream = false
         });
 
@@ -49,18 +51,13 @@ public class OllamaLLMService : ILLMService
         return Sanitize(raw);
     }
 
-    // Sanitize AI output before returning it to callers.
-    // Prevents control characters and null bytes from crashing downstream
-    // consumers (JSON parsers, PostgreSQL) and caps response length.
+    /// <summary>
+    /// Strips control characters and caps length so output is safe for PostgreSQL and the UI.
+    /// </summary>
     private static string Sanitize(string text)
     {
-        // Remove control characters except newline and tab
         text = new string(text.Where(c => c >= 32 || c == '\n' || c == '\t').ToArray());
 
-        // Remove null bytes — PostgreSQL throws on \0 in text columns
-        text = text.Replace("\0", string.Empty);
-
-        // Cap length to prevent runaway responses from filling the database or hanging the UI
         if (text.Length > MaxResponseLength)
             text = text[..MaxResponseLength] + "\n\n[Response truncated]";
 

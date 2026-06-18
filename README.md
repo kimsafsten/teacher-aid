@@ -122,37 +122,17 @@ Standardkonto för Anna Lindqvist:
 | GET | `/api/qa/generated/{fileName}` | Hämta innehåll i en genererad fil |
 | PUT | `/api/qa/generated/{fileName}` | Spara redigerat innehåll till fil |
 
-<<<<<<< Updated upstream
-=======
 ### Generera kursmaterial (lärargränssnitt)
 
 På fliken **Kursmaterial** kan läraren synka filer från `kursmaterial/`, ange kurs-ID och instruktion, och generera nytt material. Resultatet sparas automatiskt i `genererat/` och kan redigeras och sparas igen i webbläsaren. **Rensa och generera nytt** tömmer utkastet och instruktionen (kurs-ID behålls) så att en ny generering kan startas — tidigare filer finns kvar i historikpanelen.
 
-### Synka inlämningar (lärargränssnitt)
-
-På fliken **Inlämningar** synkas filer från `inlamningar/` med `POST /api/sync/submissions`. Förväntad struktur:
-
-```
-inlamningar/{kursId}/{uppgiftId}/
-  uppgiftsbeskrivning.pdf   (eller .docx / .txt)
-  bedömningsmall.pdf
-  Förnamn_Efternamn_KursId.pdf
-```
-
-Uppgiftsbeskrivning och bedömningsmall indexeras som `AssignmentDescription` respektive `GradingRubric`. Övriga filer behandlas som elevinlämningar och triggar automatiskt n8n-webhooken med `assignmentDescription` och `gradingRubric` i payloaden.
-
 AI-svar på svenska; etablerade facktermer (t.ex. *structure as code*, *prompt*) behålls på engelska när det är branschstandard.
 
->>>>>>> Stashed changes
 ---
 
 ## n8n-workflow
 
-<<<<<<< Updated upstream
-Importera `n8n-workflow.json` från repots rot i n8n-gränssnittet (`http://localhost:5678`).
-=======
-Importera `n8n-workflow.json` från repots rot i n8n-gränssnittet (`http://127.0.0.1:5678`). På Windows med Docker + WSL måste både webbläsaren **och** n8n-containern använda `127.0.0.1` — annars laddas UI:t men interna anrop (t.ex. telemetry) går fortfarande till `localhost` och ger `ERR_CONNECTION_RESET` via IPv6. `docker-compose.yml` sätter detta via `N8N_HOST` och `N8N_EDITOR_BASE_URL`. API:ets `OllamaLLMService` använder samma adress (`http://127.0.0.1:11434`).
->>>>>>> Stashed changes
+Importera `n8n-workflow.json` från repots rot i n8n-gränssnittet (`http://127.0.0.1:5678`). Använd `127.0.0.1` i stället för `localhost` på Windows — Docker + WSL kan annars ge `ERR_CONNECTION_RESET` via IPv6. API:ets `OllamaLLMService` använder samma adress (`http://127.0.0.1:11434`).
 
 Workflowen tar emot studentdata via webhook (`submissionId`, `courseId`, `assignmentId`, `content`, `assignmentDescription`, `gradingRubric`), anropar Ollama för feedbackgenerering och sparar utkastet i databasen.
 

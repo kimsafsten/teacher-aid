@@ -3,22 +3,14 @@ using System.Text;
 namespace TeacherAid.Api.Services;
 
 /// <summary>
-/// Splits text into manageable chunks for embedding and RAG indexing.
-/// Extracted from RagService to allow unit testing without infrastructure dependencies.
+/// Splits text into chunks for embedding and RAG indexing.
 /// </summary>
 public static class TextChunker
 {
     /// <summary>
-    /// Splits <paramref name="text"/> into chunks no larger than <paramref name="chunkSize"/>
-    /// characters, splitting on newline boundaries where possible.
+    /// Splits on newline boundaries where possible. Paragraphs longer than
+    /// <paramref name="chunkSize"/> are kept intact as a single chunk.
     /// </summary>
-    /// <param name="text">The text to chunk.</param>
-    /// <param name="chunkSize">Maximum characters per chunk (default 500).</param>
-    /// <returns>
-    /// A list of trimmed string chunks. Returns an empty list for null, empty,
-    /// or whitespace-only input. A single paragraph that exceeds <paramref name="chunkSize"/>
-    /// is kept intact and produces a chunk larger than the limit.
-    /// </returns>
     public static List<string> Chunk(string text, int chunkSize = 500)
     {
         var chunks = new List<string>();

@@ -34,7 +34,7 @@ export default function MaterialGenerator() {
       const { data } = await axios.get(`${API}/qa/generated`, { headers })
       setHistory(data.files ?? [])
     } catch {
-      // Silent failure — history is non-critical.
+      // History panel is optional; ignore load errors.
     }
   }
 
@@ -102,6 +102,15 @@ export default function MaterialGenerator() {
     } finally {
       setSaving(false)
     }
+  }
+
+  const handleClear = () => {
+    if (isDirty && !confirm('Du har osparade ändringar. Vill du rensa ändå?')) return
+    setResult(null)
+    setEditedContent('')
+    setInstruction('')
+    setSaved(false)
+    localStorage.removeItem(STORAGE_KEY)
   }
 
   const handleLoadHistory = async (fileName) => {
@@ -200,10 +209,17 @@ export default function MaterialGenerator() {
           <div className="mt-4 pt-4 border-t border-gray-100">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-medium text-gray-500">Resultat</p>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 {result.generatedAt && (
                   <p className="text-xs text-gray-400">{result.generatedAt}</p>
                 )}
+                <button
+                  type="button"
+                  onClick={handleClear}
+                  className="text-xs font-medium px-3 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+                >
+                  Rensa och generera nytt
+                </button>
                 {result.savedAs && (
                   <button
                     onClick={handleSave}
