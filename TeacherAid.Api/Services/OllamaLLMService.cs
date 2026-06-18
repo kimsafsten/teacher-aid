@@ -5,7 +5,8 @@ namespace TeacherAid.Api.Services;
 public class OllamaLLMService : ILLMService
 {
     private readonly IHttpClientFactory _http;
-    private const string OllamaUrl = "http://localhost:11434";
+    // Use 127.0.0.1 — "localhost" resolves to ::1 on Windows, which Docker port mapping does not serve.
+    private const string OllamaUrl = "http://127.0.0.1:11434";
     private const int MaxResponseLength = 8000;
 
     public OllamaLLMService(IHttpClientFactory http)
@@ -38,6 +39,7 @@ public class OllamaLLMService : ILLMService
         {
             model = "llama3",
             prompt,
+            system = "Du svarar alltid på svenska. Behåll etablerade facktermer och begrepp på engelska när det är branschstandard (t.ex. structure as code) — översätt inte sådana termer.",
             stream = false
         });
 

@@ -57,14 +57,18 @@ public class QaController : ControllerBase
             : "Inget befintligt kursmaterial finns uppladdat.";
 
         var prompt = $"""
+            VIKTIGT: Skriv hela svaret på svenska. Behåll etablerade facktermer och begrepp på engelska när det är branschstandard (t.ex. structure as code) — översätt inte sådana termer.
+
             Du är en erfaren pedagogisk assistent för läraren Anna Lindqvist på Yrkesakademin.
             Baserat på befintligt kursmaterial nedan, generera nytt material enligt instruktionen.
-            Svara på svenska. Formatera svaret tydligt med rubriker och punktlistor där det passar.
+            Formatera svaret tydligt med rubriker och punktlistor där det passar.
 
             Befintligt kursmaterial:
             {context}
 
             Instruktion: {dto.Instruction}
+
+            Kom ihåg: Svara på svenska, men lämna etablerade engelska facktermer oförändrade.
             """;
 
         var result = await _llm.GenerateAsync(prompt);

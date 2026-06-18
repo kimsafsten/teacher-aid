@@ -1,0 +1,27 @@
+# Kortreflektion – Granskning av AI-genererad kod
+
+**Student:** Marcus Strand  
+**Datum:** 2026-06-22  
+
+---
+
+## Del 1 – Identifierade brister
+
+**Brist 1 – Ingen checksiffra (Luhn):**  
+Personnummer i Sverige valideras med Luhn-algoritmen, som beräknar en checksiffra utifrån de övriga siffrorna. Funktionen hoppar över detta helt. Det innebär att `1234567890` skulle godkännas trots att det inte är ett giltigt personnummer. I ett system som hanterar patientdata eller inloggning kan det innebära att felaktiga identiteter accepteras.
+
+**Brist 2 – Ingen datumvalidering:**  
+Funktionen kontrollerar inte att datum-delen (ÅÅMMDD) faktiskt representerar ett giltigt datum. Värden som `001399` (månad 13) skulle passera kontrollen. Det kan leda till logikfel senare i systemet när man försöker parsa datumet.
+
+## Del 2 – Föreslagen förbättring
+
+Jag skulle lägga till två steg i valideringen:
+
+1. Parsa de första sex siffrorna som ett datum och kontrollera att det är giltigt med ett standardbibliotek (t.ex. `datetime.strptime`).
+2. Implementera Luhn-algoritmen för att validera checksiffran.
+
+Formatet bör också kontrolleras med ett regex, t.ex. `^\d{6}-\d{4}$`, innan siffrorna extraheras.
+
+## Del 3 – Reflektion
+
+Det här exemplet visar tydligt att AI genererar "tillräcklig" kod – den löser det uppenbara problemet men missar domänspecifik logik som checksiffror. I ett verkligt projekt bör man behandla AI-output som ett utkast: kör alltid egna tester, framför allt med kantfall och ogiltiga indata, och granska koden mot eventuella branschstandarder eller regelverk.

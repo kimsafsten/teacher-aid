@@ -78,7 +78,8 @@ namespace TeacherAid.Api.Controllers
                 try
                 {
                     using var client = _http.CreateClient("ollama"); // 5 min timeout
-                    await client.PostAsJsonAsync("http://localhost:5678/webhook/feedback", payload);
+                    var n8nUrl = _config["N8n:WebhookUrl"] ?? "http://127.0.0.1:5678/webhook/feedback";
+                    await client.PostAsJsonAsync(n8nUrl, payload);
                 }
                 catch
                 {

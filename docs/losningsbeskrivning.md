@@ -29,12 +29,14 @@ Systemet består av tre lager som samverkar:
 **ASP.NET Core API (.NET 10)** hanterar all affärslogik och exponerar ett REST-API med JWT-autentisering för lärarens gränssnitt. Centrala tjänster:
 
 - `RagService` — indexerar kursdokument i vektorformat och besvarar elevfrågor med RAG-mönstret (Retrieval-Augmented Generation)
-- `OllamaLLMService` — kommunicerar med den lokala Ollama-instansen för både embedding och textgenerering
+- `OllamaLLMService` — kommunicerar med den lokala Ollama-instansen för både embedding och textgenerering (via `http://127.0.0.1:11434` på Windows för att undvika IPv6-problem med Docker)
 - `FolderSyncService` / `DocumentExtractorService` — hanterar synkronisering och extraktion av kursmaterial
 
 **PostgreSQL med pgvector** används som databas. pgvector-tillägget möjliggör vektorsökning (L2-distans) direkt i databasen, vilket är kärnan i RAG-flödet.
 
-**Ollama (Docker)** kör AI-modellerna lokalt — `llama3` för textgenerering och `nomic-embed-text` för embeddings. Ingen data skickas till externa tjänster.
+**Ollama (Docker)** kör AI-modellerna lokalt — `llama3` för textgenerering och `nomic-embed-text` för embeddings. Ingen data skickas till externa tjänster. API-vägen instruerar modellen att svara på svenska men behålla etablerade facktermer på engelska (t.ex. *prompt*, *structure as code*).
+
+**Materialgenerering i gränssnittet** — läraren anger kurs-ID och instruktion; AI:n använder indexerat kursmaterial som kontext. Resultatet sparas i `genererat/`, kan redigeras och sparas igen, och tidigare genereringar kan laddas från historik. Knappen *Rensa och generera nytt* nollställer utkast och instruktion för nästa generering utan att radera sparade filer.
 
 ---
 

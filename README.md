@@ -112,11 +112,17 @@ Standardkonto för Anna Lindqvist:
 | GET | `/api/qa/generated/{fileName}` | Hämta innehåll i en genererad fil |
 | PUT | `/api/qa/generated/{fileName}` | Spara redigerat innehåll till fil |
 
+### Generera kursmaterial (lärargränssnitt)
+
+På fliken **Kursmaterial** kan läraren synka filer från `kursmaterial/`, ange kurs-ID och instruktion, och generera nytt material. Resultatet sparas automatiskt i `genererat/` och kan redigeras och sparas igen i webbläsaren. **Rensa och generera nytt** tömmer utkastet och instruktionen (kurs-ID behålls) så att en ny generering kan startas — tidigare filer finns kvar i historikpanelen.
+
+AI-svar på svenska; etablerade facktermer (t.ex. *structure as code*, *prompt*) behålls på engelska när det är branschstandard.
+
 ---
 
 ## n8n-workflow
 
-Importera `n8n-workflow.json` från repots rot i n8n-gränssnittet (`http://localhost:5678`).
+Importera `n8n-workflow.json` från repots rot i n8n-gränssnittet (`http://127.0.0.1:5678`). Använd `127.0.0.1` i stället för `localhost` på Windows — Docker + WSL kan annars ge `ERR_CONNECTION_RESET` via IPv6. API:ets `OllamaLLMService` använder samma adress (`http://127.0.0.1:11434`).
 
 Workflowen tar emot studentdata via webhook, anropar Ollama för feedbackgenerering och sparar utkastet i databasen.
 

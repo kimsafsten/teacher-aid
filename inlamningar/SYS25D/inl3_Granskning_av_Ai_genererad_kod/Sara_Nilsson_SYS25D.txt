@@ -1,0 +1,16 @@
+# Kortreflektion – Granskning av AI-genererad kod
+
+**Student:** Sara Nilsson  
+**Datum:** 2026-06-23  
+
+---
+
+Jag läste igenom funktionen och hittade några saker som kan förbättras.
+
+**Brist 1:** Funktionen tar bara bort bindestreck men kontrollerar inte om formatet faktiskt är rätt. Om man skriver in `ÅÅMMDD-XXXX` med ett bindestreck på fel ställe, t.ex. `123456-789`, godkänns det ändå om det råkar bli 10 siffror. Det kan leda till att felaktiga personnummer accepteras.
+
+**Brist 2:** Den kollar inte om datumdelen är rimlig. Exempelvis skulle `9999991234` godkännas trots att `999999` inte är ett riktigt datum.
+
+**Förbättring:** Man borde lägga till en kontroll av att datumet ser rätt ut, till exempel att månaden är mellan 01 och 12. Man borde också se till att formatet faktiskt matchar det som förväntas.
+
+**Reflektion:** Det här visar att AI kan generera kod som ser rätt ut men saknar viktiga valideringar. Man bör alltid testa koden med kantfall och inte bara lita på att AI:n har tänkt på allt.

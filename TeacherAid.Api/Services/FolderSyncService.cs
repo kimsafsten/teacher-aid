@@ -197,7 +197,7 @@ public class FolderSyncService
             }
             await _db.SaveChangesAsync();
 
-            var n8nUrl = _config["N8n:WebhookUrl"] ?? "http://localhost:5678/webhook/feedback";
+            var n8nUrl = _config["N8n:WebhookUrl"] ?? "http://127.0.0.1:5678/webhook/feedback";
 
             foreach (var submission in newSubmissions)
             {
