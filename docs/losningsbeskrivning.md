@@ -29,12 +29,25 @@ Systemet består av tre lager som samverkar:
 **ASP.NET Core API (.NET 10)** hanterar all affärslogik och exponerar ett REST-API med JWT-autentisering för lärarens gränssnitt. Centrala tjänster:
 
 - `RagService` — indexerar kursdokument i vektorformat och besvarar elevfrågor med RAG-mönstret (Retrieval-Augmented Generation)
+<<<<<<< Updated upstream
 - `OllamaLLMService` — kommunicerar med den lokala Ollama-instansen för både embedding och textgenerering
 - `FolderSyncService` / `DocumentExtractorService` — hanterar synkronisering och extraktion av kursmaterial
+=======
+- `OllamaLLMService` — kommunicerar med den lokala Ollama-instansen för både embedding och textgenerering (via `http://127.0.0.1:11434` på Windows för att undvika IPv6-problem med Docker)
+- `FolderSyncService` / `DocumentExtractorService` — hanterar synkronisering och extraktion av kursmaterial (`SyncCourseMaterial()`, `SyncSubmissions()`)
+>>>>>>> Stashed changes
 
-**PostgreSQL med pgvector** används som databas. pgvector-tillägget möjliggör vektorsökning (L2-distans) direkt i databasen, vilket är kärnan i RAG-flödet.
+**PostgreSQL med pgvector** används som databas. pgvector-tillägget möjliggör vektorsökning (L2-distans) direkt i databasen, vilket är kärnan i RAG-flödet. Kursdokument klassificeras med `DocumentType` (`CourseMaterial`, `AssignmentDescription`, `GradingRubric`).
 
+<<<<<<< Updated upstream
 **Ollama (Docker)** kör AI-modellerna lokalt — `llama3` för textgenerering och `nomic-embed-text` för embeddings. Ingen data skickas till externa tjänster.
+=======
+**Ollama (Docker)** kör AI-modellerna lokalt — `llama3` för textgenerering och `nomic-embed-text` för embeddings. Ingen data skickas till externa tjänster. API-vägen instruerar modellen att svara på svenska men behålla etablerade facktermer på engelska (t.ex. *prompt*, *structure as code*).
+
+**Materialgenerering i gränssnittet** — läraren anger kurs-ID och instruktion; AI:n använder indexerat kursmaterial som kontext. Resultatet sparas i `genererat/` (config-nyckel `FolderPaths:Generated`), kan redigeras och sparas igen, och tidigare genereringar kan laddas från historik. Knappen *Rensa och generera nytt* nollställer utkast och instruktion för nästa generering utan att radera sparade filer.
+
+**Mappstruktur för inlämningar** — `inlamningar/{kursId}/{uppgiftId}/` med filerna `uppgiftsbeskrivning` och `bedömningsmall` (valfritt filformat) samt elevfiler enligt `Förnamn_Efternamn_KursId.pdf`. Synkas via `POST /api/sync/submissions`.
+>>>>>>> Stashed changes
 
 ---
 
@@ -42,7 +55,7 @@ Systemet består av tre lager som samverkar:
 
 När läraren triggar feedbackgenerering för en inlämning anropas ett n8n-workflow via webhook. Workflowen:
 
-1. Tar emot inlämningsdata (student, kurs, innehåll) via POST till `/webhook/feedback`
+1. Tar emot inlämningsdata via POST till `/webhook/feedback` (`submissionId`, `courseId`, `assignmentId`, `content`, `assignmentDescription`, `gradingRubric`)
 2. Skickar innehållet till Ollama (`llama3`) med en prompt som begär sammanfattning och konstruktiv feedback
 3. Sparar det genererade utkastet i databasen (`FeedbackDrafts`) med `Approved = false`
 
@@ -82,7 +95,7 @@ Läraren kan sedan granska och godkänna utkastet via gränssnittet.
 - **Feedback kan inte redigeras direkt på sidan** — läraren kan inte justera AI-feedbacken inline.
 - **En kurs stöds (by design)** — systemet är avsiktligt begränsat till en enda kurs i nuvarande version.
 - **Elever loggar inte in (by design)** — elever ställer anonyma frågor utan autentisering.
-- **Chunking delar inte på meningar** — `ChunkText` splittar enbart på radbrytningar och kan producera chunks som överskrider maxstorleken.
+- **Chunking delar inte på meningar** — `TextChunker.Chunk()` splittar enbart på radbrytningar och kan producera chunks som överskrider maxstorleken.
 - **Endast tre chunks används per fråga** — RAG-sökningen hämtar alltid exakt tre närmaste chunks oavsett relevans.
 - **Embeddings cachas inte** — varje anrop genererar ett nytt embedding-anrop till Ollama.
 - **Ingen felhantering för Ollama-timeout** — om Ollama är under uppstart kastar API:et ett ohanterat undantag.

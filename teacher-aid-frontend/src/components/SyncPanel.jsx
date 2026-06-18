@@ -88,7 +88,7 @@ export default function SyncPanel() {
     setSyncing(true)
     setSyncResult(null)
     try {
-      const { data } = await axios.post(`${API}/sync/inlamningar`, {}, { headers })
+      const { data } = await axios.post(`${API}/sync/submissions`, {}, { headers })
       setSyncResult(data)
       fetchSubmissions()
     } catch (err) {
@@ -109,7 +109,7 @@ export default function SyncPanel() {
         setPollingIds(prev => { const next = new Set(prev); next.delete(id); return next })
         fetchSubmissions()
       } catch {
-        // fortsätt polla tills svar kommer
+        // Keep polling until feedback arrives.
       }
     }, 15000)
   }
@@ -120,7 +120,7 @@ export default function SyncPanel() {
       return
     }
     setReviewingId(s.id)
-    // Initiera state bara om det inte redan finns (bevara ändringar vid kollaps)
+    // Initialize state only when missing (preserve edits when collapsing).
     if (!editStates[s.id]) {
       setEditStates(prev => ({
         ...prev,

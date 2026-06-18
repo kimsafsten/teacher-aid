@@ -29,7 +29,7 @@ public class QaController : ControllerBase
     [HttpPost("documents")]
     public async Task<IActionResult> UploadDocument([FromBody] UploadDocumentDto dto)
     {
-        await _rag.IndexDocument(dto.CourseId, "", DocumentType.Kursmaterial, dto.FileName, dto.Content);
+        await _rag.IndexDocument(dto.CourseId, "", DocumentType.CourseMaterial, dto.FileName, dto.Content);
         return Ok("Dokument indexerat");
     }
 
@@ -128,7 +128,7 @@ public class QaController : ControllerBase
 
     private string ResolveGeneratedFolder()
     {
-        var basePath = _config["FolderPaths:Genererat"] ?? "../genererat";
+        var basePath = _config["FolderPaths:Generated"] ?? "../genererat";
         return Path.IsPathRooted(basePath)
             ? basePath
             : Path.Combine(_env.ContentRootPath, basePath);

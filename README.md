@@ -17,6 +17,12 @@ React (Vite)  →  ASP.NET Core API  →  PostgreSQL + pgvector
 - **AI**: Ollama kör lokalt i Docker — ingen data skickas externt
 - **Automation**: n8n triggas via webhook för att generera feedbackutkast
 
+### Kodkonventioner
+
+- **Källkod på engelska** — identifierare, kommentarer och API-rutter (t.ex. `SyncSubmissions()`, `POST /api/sync/course-material`)
+- **Meddelanden på svenska** — UI-texter, felmeddelanden till användare och LLM-prompter
+- **Filsystem** — fysiska mappar (`kursmaterial/`, `inlamningar/`) och obligatoriska filnamn (`uppgiftsbeskrivning`, `bedömningsmall`) behåller svenska namn
+
 ---
 
 ## Förutsättningar
@@ -57,9 +63,9 @@ Skapa `TeacherAid.Api/appsettings.Development.json`:
     "DefaultConnection": "Host=localhost;Port=5434;Database=teacheraiddb;Username=postgres;Password=postgres"
   },
   "FolderPaths": {
-    "Kursmaterial": "../kursmaterial",
-    "Inlamningar":  "../inlamningar",
-    "Genererat":    "../genererat"
+    "CourseMaterial": "../kursmaterial",
+    "Submissions":    "../inlamningar",
+    "Generated":      "../genererat"
   }
 }
 ```
@@ -104,7 +110,11 @@ Standardkonto för Anna Lindqvist:
 | POST | `/api/submissions/{id}/process` | Trigga AI-feedback via n8n |
 | GET | `/api/submissions/{id}/feedback` | Hämta feedbackutkast |
 | PUT | `/api/submissions/{id}/feedback` | Godkänn feedback |
+| GET | `/api/submissions/all` | Lista inlämningar med feedbackstatus |
+| GET | `/api/submissions/{id}/file` | Ladda ner originalfil (JWT) |
 | GET | `/api/submissions/logs` | Se automationslogg |
+| POST | `/api/sync/course-material` | Synka `kursmaterial/` till RAG-index |
+| POST | `/api/sync/submissions` | Synka `inlamningar/` och trigga feedback |
 | POST | `/api/qa/documents` | Ladda upp kursdokument |
 | POST | `/api/qa/ask` | Ställ kursfråga (RAG) |
 | POST | `/api/qa/generate-material` | Generera kursmaterial (sparas i `genererat/`) |
@@ -112,13 +122,39 @@ Standardkonto för Anna Lindqvist:
 | GET | `/api/qa/generated/{fileName}` | Hämta innehåll i en genererad fil |
 | PUT | `/api/qa/generated/{fileName}` | Spara redigerat innehåll till fil |
 
+<<<<<<< Updated upstream
+=======
+### Generera kursmaterial (lärargränssnitt)
+
+På fliken **Kursmaterial** kan läraren synka filer från `kursmaterial/`, ange kurs-ID och instruktion, och generera nytt material. Resultatet sparas automatiskt i `genererat/` och kan redigeras och sparas igen i webbläsaren. **Rensa och generera nytt** tömmer utkastet och instruktionen (kurs-ID behålls) så att en ny generering kan startas — tidigare filer finns kvar i historikpanelen.
+
+### Synka inlämningar (lärargränssnitt)
+
+På fliken **Inlämningar** synkas filer från `inlamningar/` med `POST /api/sync/submissions`. Förväntad struktur:
+
+```
+inlamningar/{kursId}/{uppgiftId}/
+  uppgiftsbeskrivning.pdf   (eller .docx / .txt)
+  bedömningsmall.pdf
+  Förnamn_Efternamn_KursId.pdf
+```
+
+Uppgiftsbeskrivning och bedömningsmall indexeras som `AssignmentDescription` respektive `GradingRubric`. Övriga filer behandlas som elevinlämningar och triggar automatiskt n8n-webhooken med `assignmentDescription` och `gradingRubric` i payloaden.
+
+AI-svar på svenska; etablerade facktermer (t.ex. *structure as code*, *prompt*) behålls på engelska när det är branschstandard.
+
+>>>>>>> Stashed changes
 ---
 
 ## n8n-workflow
 
+<<<<<<< Updated upstream
 Importera `n8n-workflow.json` från repots rot i n8n-gränssnittet (`http://localhost:5678`).
+=======
+Importera `n8n-workflow.json` från repots rot i n8n-gränssnittet (`http://127.0.0.1:5678`). På Windows med Docker + WSL måste både webbläsaren **och** n8n-containern använda `127.0.0.1` — annars laddas UI:t men interna anrop (t.ex. telemetry) går fortfarande till `localhost` och ger `ERR_CONNECTION_RESET` via IPv6. `docker-compose.yml` sätter detta via `N8N_HOST` och `N8N_EDITOR_BASE_URL`. API:ets `OllamaLLMService` använder samma adress (`http://127.0.0.1:11434`).
+>>>>>>> Stashed changes
 
-Workflowen tar emot studentdata via webhook, anropar Ollama för feedbackgenerering och sparar utkastet i databasen.
+Workflowen tar emot studentdata via webhook (`submissionId`, `courseId`, `assignmentId`, `content`, `assignmentDescription`, `gradingRubric`), anropar Ollama för feedbackgenerering och sparar utkastet i databasen.
 
 ---
 
@@ -134,7 +170,7 @@ Workflowen tar emot studentdata via webhook, anropar Ollama för feedbackgenerer
 
 ## Kända begränsningar
 
-- **Chunking delar inte på meningar** — `ChunkText` splittar enbart på radbrytningar. En lång mening som inte innehåller `\n` hamnar i ett enda chunk som kan överskrida maxstorleken på 500 tecken.
+- **Chunking delar inte på meningar** — `TextChunker.Chunk()` splittar enbart på radbrytningar. En lång mening som inte innehåller `\n` hamnar i ett enda chunk som kan överskrida maxstorleken på 500 tecken.
 - **Endast tre chunks används per fråga** — RAG-sökningen hämtar alltid exakt tre närmaste chunks oavsett relevans. Vid glest indexerat material kan svaren bli missvisande.
 - **Embeddings cachas inte** — varje fråga och varje chunk vid indexering genererar ett nytt embedding-anrop till Ollama. Vid stora dokumentvolymer blir detta en flaskhals.
 - **Hårdkodad användare** — autentiseringen är avsedd för en enskild lärare (Anna Lindqvist). Stöd för flera användare eller roller saknas.

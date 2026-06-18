@@ -16,7 +16,7 @@
 
 **AI-genererad kod behövde mer granskning än förväntat på affärslogiken.** Grundstrukturen var korrekt, men detaljer som felhantering, edge cases och meningsfulla HTTP-statuskoder saknades konsekvent i första utkast. Exempelvis kastade API:et ohanterade undantag om Ollama var under uppstart istället för att returnera 503. Det är inte ett misstag som är svårt att hitta — men det är ett misstag som AI inte flaggade för.
 
-**Chunking-strategin var naiv.** `ChunkText` splittar enbart på radbrytningar, vilket innebär att ett långt stycke utan radbrytning kan bli en chunk som överstiger maxstorleken. RAG-kvaliteten är direkt beroende av chunk-kvaliteten, och det borde ha prioriterats högre tidigt i projektet.
+**Chunking-strategin var naiv.** `TextChunker.Chunk()` splittar enbart på radbrytningar, vilket innebär att ett långt stycke utan radbrytning kan bli en chunk som överstiger maxstorleken. RAG-kvaliteten är direkt beroende av chunk-kvaliteten, och det borde ha prioriterats högre tidigt i projektet.
 
 **Tre chunks per fråga oavsett relevans är ett trubbigt val.** Det fungerar för korta, precisa frågor, men ger sämre resultat om relevant information är utspridd. En tröskel på cosine similarity hade gett mer konsistenta svar.
 

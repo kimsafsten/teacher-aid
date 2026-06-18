@@ -2,9 +2,9 @@ namespace TeacherAid.Api.Models
 {
     public enum DocumentType
     {
-        Kursmaterial,
-        Uppgiftsbeskrivning,
-        Bedömningsmall
+        CourseMaterial,
+        AssignmentDescription,
+        GradingRubric
     }
 
     public class CourseDocument
@@ -12,7 +12,7 @@ namespace TeacherAid.Api.Models
         public int Id { get; set; }
         public string CourseId { get; set; } = "";
         public string AssignmentId { get; set; } = "";
-        public DocumentType DocumentType { get; set; } = DocumentType.Kursmaterial;
+        public DocumentType DocumentType { get; set; } = DocumentType.CourseMaterial;
         public string FileName { get; set; } = "";
         public string Content { get; set; } = "";
         public string? SourceFileName { get; set; }
