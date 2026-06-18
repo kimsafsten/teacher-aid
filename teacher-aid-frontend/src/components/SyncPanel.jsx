@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 
 const API = 'http://localhost:5010/api'
 
+// Derives assignment label from Firstname_Lastname_CourseId_Assignment.ext (segments after index 3).
 function parseAssignment(fileName) {
   if (!fileName) return 'Okänd uppgift'
   const parts = fileName.replace(/\.[^.]+$/, '').split('_')
@@ -68,7 +69,6 @@ export default function SyncPanel() {
       const { data } = await axios.get(`${API}/submissions/all`, { headers })
       setSubmissions(data)
       data.filter(s => !s.feedback).forEach(s => startPolling(s.id))
-      // Open all groups by default
       const groups = groupByAssignment(data)
       setOpenGroups(prev => {
         const next = { ...prev }
@@ -88,7 +88,7 @@ export default function SyncPanel() {
     setSyncing(true)
     setSyncResult(null)
     try {
-      const { data } = await axios.post(`${API}/sync/inlamningar`, {}, { headers })
+      const { data } = await axios.post(`${API}/sync/submissions`, {}, { headers })
       setSyncResult(data)
       fetchSubmissions()
     } catch (err) {
@@ -98,6 +98,7 @@ export default function SyncPanel() {
     }
   }
 
+  // Poll every 15s until the feedback draft exists (404 until n8n finishes).
   const startPolling = (id) => {
     if (pollingRefs.current[id]) return
     setPollingIds(prev => new Set([...prev, id]))
@@ -109,7 +110,7 @@ export default function SyncPanel() {
         setPollingIds(prev => { const next = new Set(prev); next.delete(id); return next })
         fetchSubmissions()
       } catch {
-        // fortsätt polla tills svar kommer
+        // Expected while feedback is still generating.
       }
     }, 15000)
   }
@@ -120,7 +121,6 @@ export default function SyncPanel() {
       return
     }
     setReviewingId(s.id)
-    // Initiera state bara om det inte redan finns (bevara ändringar vid kollaps)
     if (!editStates[s.id]) {
       setEditStates(prev => ({
         ...prev,
@@ -209,23 +209,19 @@ export default function SyncPanel() {
         )}
       </div>
 
-      {/* Loading */}
       {loading && (
         <p className="text-sm text-gray-400 text-center py-6">Laddar…</p>
       )}
 
-      {/* Empty state */}
       {!loading && submissions.length === 0 && (
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-8 text-center">
           <p className="text-sm text-gray-400">Inga inlämningar ännu. Synka för att importera filer.</p>
         </div>
       )}
 
-      {/* Grouped submissions */}
       {Object.entries(groups).map(([assignment, subs]) => (
         <div key={assignment} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
 
-          {/* Group header */}
           <button
             onClick={() => toggleGroup(assignment)}
             className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-gray-50 transition-colors"
@@ -241,13 +237,11 @@ export default function SyncPanel() {
             </span>
           </button>
 
-          {/* Rows */}
           {openGroups[assignment] && (
             <div className="border-t border-gray-100">
               {subs.map((s, i) => (
                 <div key={s.id} className={i < subs.length - 1 ? 'border-b border-gray-100' : ''}>
 
-                  {/* Submission row */}
                   <div className="flex items-center justify-between px-5 py-3 gap-3">
                     <div>
                       <p className="text-sm font-medium text-gray-900">{s.studentName}</p>
@@ -302,7 +296,6 @@ export default function SyncPanel() {
                     </div>
                   </div>
 
-                  {/* Expanded approved feedback */}
                   {expandedId === s.id && s.feedback?.approved && (
                     <div className="px-5 pb-4 pt-3 bg-gray-50 border-t border-gray-100">
                       {s.feedback.summary && (
@@ -314,7 +307,6 @@ export default function SyncPanel() {
                     </div>
                   )}
 
-                  {/* Inline review form */}
                   {reviewingId === s.id && (
                     <div className="px-5 pb-4 pt-3 bg-gray-50 border-t border-gray-100 space-y-3">
                       {s.feedback.summary && (

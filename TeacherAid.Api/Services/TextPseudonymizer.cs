@@ -2,33 +2,27 @@ namespace TeacherAid.Api.Services;
 
 /// <summary>
 /// Replaces student name occurrences in text with a neutral placeholder.
-/// Extracted from FolderSyncService to allow unit testing without infrastructure dependencies.
+/// Full name is replaced before individual parts to avoid partial matches.
 /// </summary>
 public static class TextPseudonymizer
 {
     private const string Placeholder = "[Student]";
+    private const int MinPartLength = 3;
 
     /// <summary>
-    /// Replaces all occurrences of the student's full name, first name, and last name
-    /// (each longer than 2 characters) with <c>[Student]</c>. Replacement is case-insensitive.
+    /// Replaces the full name and name parts (≥ <see cref="MinPartLength"/> chars), case-insensitively.
     /// </summary>
-    /// <param name="text">The text to pseudonymize.</param>
-    /// <param name="studentName">Full name in "Firstname Lastname" format.</param>
-    /// <returns>
-    /// The input text with name occurrences replaced. Returns the original text unchanged
-    /// if <paramref name="studentName"/> is null or whitespace.
-    /// </returns>
     public static string Pseudonymize(string text, string studentName)
     {
         if (string.IsNullOrWhiteSpace(studentName)) return text;
 
-        // Replace full name first (most specific match)
         var result = text.Replace(studentName, Placeholder, StringComparison.OrdinalIgnoreCase);
 
-        // Replace individual name parts longer than 2 characters
-        var parts = studentName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        foreach (var part in parts.Where(p => p.Length > 2))
+        foreach (var part in studentName.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                     .Where(p => p.Length >= MinPartLength))
+        {
             result = result.Replace(part, Placeholder, StringComparison.OrdinalIgnoreCase);
+        }
 
         return result;
     }

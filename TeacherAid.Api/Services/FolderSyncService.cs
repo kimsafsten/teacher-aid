@@ -5,6 +5,9 @@ using TeacherAid.Api.Models;
 
 namespace TeacherAid.Api.Services;
 
+/// <summary>
+/// Scans configured folders on disk and syncs course materials and student submissions into the database.
+/// </summary>
 public class FolderSyncService
 {
     private readonly AppDbContext _db;
@@ -16,6 +19,15 @@ public class FolderSyncService
 
     private static readonly string[] SupportedExtensions = [".pdf", ".docx", ".txt"];
 
+    private static class AssignmentDocumentFileNames
+    {
+        public const string Description = "uppgiftsbeskrivning";
+        public const string GradingRubric = "bedömningsmall";
+    }
+
+    private static readonly string[] AssignmentDocumentNames =
+        [AssignmentDocumentFileNames.Description, AssignmentDocumentFileNames.GradingRubric];
+
     public FolderSyncService(AppDbContext db, RagService rag, DocumentExtractorService extractor, IConfiguration config, IWebHostEnvironment env, IHttpClientFactory http)
     {
         _db = db;
@@ -26,9 +38,9 @@ public class FolderSyncService
         _http = http;
     }
 
-    public async Task<SyncResult> SyncKursmaterial()
+    public async Task<SyncResult> SyncCourseMaterial()
     {
-        var folder = ResolvePath(_config["FolderPaths:Kursmaterial"] ?? "../kursmaterial");
+        var folder = ResolvePath(_config["FolderPaths:CourseMaterial"] ?? "../kursmaterial");
         var result = new SyncResult();
 
         if (!Directory.Exists(folder))
@@ -54,9 +66,8 @@ public class FolderSyncService
             try
             {
                 var text = _extractor.ExtractText(file);
-                // Parse course ID from the file name (second segment: DocumentName_CourseId.pdf)
-                var courseId = SubmissionFileNameParser.ParseCourseId(fileName) ?? "okänd";
-                await _rag.IndexDocument(courseId, "", DocumentType.Kursmaterial, fileName, text, fileName);
+                var courseId = SubmissionFileNameParser.ParseCourseId(fileName) ?? SubmissionFileNameParser.UnknownCourseId;
+                await _rag.IndexDocument(courseId, "", DocumentType.CourseMaterial, fileName, text, fileName);
                 result.Processed.Add(fileName);
             }
             catch (Exception ex)
@@ -68,12 +79,13 @@ public class FolderSyncService
         return result;
     }
 
-    // Filer med dessa namn i en uppgiftsmapp tolkas som mall/beskrivning, inte elevfiler.
-    private static readonly string[] AssignmentDocumentNames = ["uppgiftsbeskrivning", "bedömningsmall"];
-
-    public async Task<SyncResult> SyncInlamningar()
+    /// <summary>
+    /// Imports new files from <c>inlamningar/{courseId}/{assignmentId}/</c>.
+    /// Requires assignment description and grading rubric files before student submissions are processed.
+    /// </summary>
+    public async Task<SyncResult> SyncSubmissions()
     {
-        var rootFolder = ResolvePath(_config["FolderPaths:Inlamningar"] ?? "../inlamningar");
+        var rootFolder = ResolvePath(_config["FolderPaths:Submissions"] ?? "../inlamningar");
         var result = new SyncResult();
 
         if (!Directory.Exists(rootFolder))
@@ -95,7 +107,6 @@ public class FolderSyncService
 
         var newSubmissions = new List<Submission>();
 
-        // Förväntad struktur: inlämningar/{kurs}/{uppgift}/filer
         foreach (var courseFolder in Directory.GetDirectories(rootFolder))
         {
             var courseId = Path.GetFileName(courseFolder);
@@ -108,22 +119,20 @@ public class FolderSyncService
                     .Where(f => SupportedExtensions.Contains(Path.GetExtension(f).ToLowerInvariant()))
                     .ToList();
 
-                // Kontrollera att uppgiftsbeskrivning och bedömningsmall finns innan elevfiler behandlas.
-                // Vi accepterar filen oavsett extension (.pdf, .docx, .txt).
-                bool hasUppgiftsbeskrivning = files.Any(f =>
-                    Path.GetFileNameWithoutExtension(f).ToLowerInvariant() == "uppgiftsbeskrivning");
-                bool hasBedömningsmall = files.Any(f =>
-                    Path.GetFileNameWithoutExtension(f).ToLowerInvariant() == "bedömningsmall");
+                bool hasAssignmentDescription = files.Any(f =>
+                    Path.GetFileNameWithoutExtension(f).ToLowerInvariant() == AssignmentDocumentFileNames.Description);
+                bool hasGradingRubric = files.Any(f =>
+                    Path.GetFileNameWithoutExtension(f).ToLowerInvariant() == AssignmentDocumentFileNames.GradingRubric);
 
                 var missingDocs = new List<string>();
-                if (!hasUppgiftsbeskrivning) missingDocs.Add("uppgiftsbeskrivning");
-                if (!hasBedömningsmall) missingDocs.Add("bedömningsmall");
+                if (!hasAssignmentDescription) missingDocs.Add(AssignmentDocumentFileNames.Description);
+                if (!hasGradingRubric) missingDocs.Add(AssignmentDocumentFileNames.GradingRubric);
 
                 if (missingDocs.Count > 0)
                 {
                     result.Warnings.Add(
                         $"{courseId}/{assignmentId}: saknar {string.Join(" och ", missingDocs)} — inlämningar hoppades över.");
-                    continue; // hoppa över hela uppgiftsmappen
+                    continue;
                 }
 
                 foreach (var file in files)
@@ -131,15 +140,14 @@ public class FolderSyncService
                     var fileName = Path.GetFileName(file);
                     var baseName = Path.GetFileNameWithoutExtension(file).ToLowerInvariant();
 
-                    // Bedömningsmall och uppgiftsbeskrivning indexeras som kursdokument
                     if (AssignmentDocumentNames.Contains(baseName))
                     {
                         if (existingDocuments.Contains(fileName)) continue;
                         try
                         {
-                            var docType = baseName == "bedömningsmall"
-                                ? DocumentType.Bedömningsmall
-                                : DocumentType.Uppgiftsbeskrivning;
+                            var docType = baseName == AssignmentDocumentFileNames.GradingRubric
+                                ? DocumentType.GradingRubric
+                                : DocumentType.AssignmentDescription;
 
                             var text = _extractor.ExtractText(file);
                             await _rag.IndexDocument(courseId, assignmentId, docType, fileName, text, fileName);
@@ -152,7 +160,6 @@ public class FolderSyncService
                     }
                     else
                     {
-                        // Övriga filer är elevens inlämningar
                         if (existingSubmissions.Contains(fileName)) continue;
                         try
                         {
@@ -184,9 +191,8 @@ public class FolderSyncService
 
         if (newSubmissions.Count > 0)
         {
-            await _db.SaveChangesAsync(); // submissions får nu sina ID:n
+            await _db.SaveChangesAsync();
 
-            // Skapa AutomationLog och trigga n8n för varje ny inlämning automatiskt
             foreach (var submission in newSubmissions)
             {
                 _db.AutomationLogs.Add(new AutomationLog
@@ -197,28 +203,17 @@ public class FolderSyncService
             }
             await _db.SaveChangesAsync();
 
-            var n8nUrl = _config["N8n:WebhookUrl"] ?? "http://127.0.0.1:5678/webhook/feedback";
-
             foreach (var submission in newSubmissions)
             {
                 var context = await _rag.GetAssignmentContext(submission.CourseId, submission.AssignmentId);
-                var payload = new
+                FeedbackWebhookTrigger.Send(_http, _config, new
                 {
                     submissionId = submission.Id,
                     courseId = submission.CourseId,
                     assignmentId = submission.AssignmentId,
                     content = submission.Content,
-                    uppgiftsbeskrivning = context.Uppgiftsbeskrivning,
-                    bedömningsmall = context.Bedömningsmall
-                };
-                _ = Task.Run(async () =>
-                {
-                    try
-                    {
-                        using var client = _http.CreateClient("ollama");
-                        await client.PostAsJsonAsync(n8nUrl, payload);
-                    }
-                    catch { /* fel loggas inte här — webhook är fire-and-forget */ }
+                    assignmentDescription = context.AssignmentDescription,
+                    gradingRubric = context.GradingRubric
                 });
             }
         }
@@ -226,12 +221,8 @@ public class FolderSyncService
         return result;
     }
 
-    private string ResolvePath(string relativePath)
-    {
-        // ContentRootPath points to the project directory (where .csproj and appsettings.json live),
-        // regardless of whether the app runs via dotnet run or from bin/Debug.
-        return Path.GetFullPath(Path.Combine(_env.ContentRootPath, relativePath));
-    }
+    private string ResolvePath(string relativePath) =>
+        Path.GetFullPath(Path.Combine(_env.ContentRootPath, relativePath));
 }
 
 public class SyncResult

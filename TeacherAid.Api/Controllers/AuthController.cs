@@ -8,6 +8,9 @@ public class AuthController : ControllerBase
     private readonly AuthService _auth;
     public AuthController(AuthService auth) => _auth = auth;
 
+    /// <summary>
+    /// Authenticates a teacher and returns a JWT on success.
+    /// </summary>
     [HttpPost("login")]
     public IActionResult Login([FromBody] LoginDto dto)
     {
