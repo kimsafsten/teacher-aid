@@ -21,6 +21,11 @@ dist/
 *.log
 .DS_Store
 .~lock.*
+
+# Intern projektdokumentation (ej inlämningsmaterial)
+CLAUDE.md
+Kravspec*.docx
+
 Beslutsunderlag_Case1.pdf
 Inlamning 2.pdf
 Inlamning1_Beslutsunderlag.pdf
