@@ -60,6 +60,10 @@ export default function FeedbackView({ submissionId, onReset }) {
         />
       </div>
 
+      <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+        Granska alltid — AI kan ha fel. Läs igenom utkastet innan du godkänner.
+      </p>
+
       <div>
         <label className="block text-sm font-medium mb-1">Betyg</label>
         <select

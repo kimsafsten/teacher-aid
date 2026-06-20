@@ -97,7 +97,7 @@ Standardkonto för Anna Lindqvist:
 - Användarnamn: `anna`
 - Lösenord: `password123`
 
-> ⚠️ Byt ut hårdkodade credentials innan produktionssättning.
+> ⚠️ Inloggningsuppgifter konfigureras i `appsettings.Development.json` (`Auth:Username`, `Auth:Password`). Byt ut dem innan produktionssättning och använd miljövariabler eller secrets manager.
 
 ---
 

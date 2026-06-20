@@ -309,6 +309,9 @@ export default function SyncPanel() {
 
                   {reviewingId === s.id && (
                     <div className="px-5 pb-4 pt-3 bg-gray-50 border-t border-gray-100 space-y-3">
+                      <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                        Granska alltid — AI kan ha fel. Läs igenom utkastet innan du godkänner.
+                      </p>
                       {s.feedback.summary && (
                         <p className="text-xs text-gray-400 italic">{s.feedback.summary}</p>
                       )}

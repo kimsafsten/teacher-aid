@@ -40,7 +40,7 @@
 
   <line x1="82" y1="105" x2="216" y2="105" stroke="#aaa" stroke-width="1.5" marker-end="url(#arr)"/>
   <text x="148" y="98" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#fff">POST /api/qa/ask</text>
-  <text x="148" y="118" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#aaa">{ courseId, question }</text>
+  <text x="148" y="118" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#aaa">{ courseId, question } max 400 tecken</text>
 
   <line x1="222" y1="140" x2="376" y2="140" stroke="#aaa" stroke-width="1.5" marker-end="url(#arr)"/>
   <text x="299" y="133" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#fff">AskQuestion(courseId, question)</text>
@@ -64,7 +64,7 @@
   <text x="458" y="303" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#fff">GenerateAsync(prompt + context)</text>
 
   <line x1="536" y1="335" x2="384" y2="335" stroke="#666" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-ret)"/>
-  <text x="458" y="329" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#aaa">string answer</text>
+  <text x="458" y="329" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#aaa">string answer (Sanitize)</text>
 
   <line x1="378" y1="370" x2="224" y2="370" stroke="#666" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-ret)"/>
   <text x="299" y="364" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#aaa">return answer</text>
